@@ -1,0 +1,5 @@
+root:x:0:0
+creep:x:1000:100
+daemon:x:2:2
+bin:x:1:1
+nobody:x:65534:65534

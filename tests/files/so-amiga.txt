@@ -1,0 +1,23 @@
+banana
+Apple
+apple
+cherry
+Banana
+  zed
+10
+9
+100
+-5
+ab	z
+ab
+
+ärlig
+Ärlig
+alpha
+zebra
+_x
+007
++4
+12 apples
+3abc
+x

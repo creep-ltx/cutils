@@ -90,6 +90,26 @@ LONG cu_line(CuIn *in, char **line, int *nl);
 LONG cu_read(CuIn *in, char *to, LONG n);  /* raw bytes, through the buffer */
 void cu_close(CuIn *in);
 
+/* ---- cu_lines.c: many lines in memory (sort) ----
+ * cu_lines_add() copies a line (n bytes, a 0 put after it) into 64 KB
+ * chunks and its pointer into l->v (grown by doubling): no malloc per
+ * line. pre bytes (rounded to long words) are kept free before the text,
+ * for the caller's own (sort's key positions). Returns the text, NULL:
+ * out of memory. cu_lines_free() gives it all back.
+ * cu_msort(): a stable merge sort of n pointers, bottom-up (no
+ * recursion); cmp <0, 0, >0. Ctrl-C ends it early (the order then
+ * half done). 0: no memory for its second array. */
+typedef struct {
+    char **v;                    /* the lines */
+    LONG n, max;
+    void *chunks;
+    char *mem;                   /* the chunk being filled */
+    LONG used, size;
+} CuLines;
+char *cu_lines_add(CuLines *l, const char *s, LONG n, LONG pre);
+void cu_lines_free(CuLines *l);
+int cu_msort(char **v, LONG n, int (*cmp)(const char *a, const char *b));
+
 /* ---- cu_walk.c: a tree, walked without recursion ----
  * cu_walk() calls fn for the start path (depth 0), then for everything
  * below it, each drawer's entries in natural order, a drawer before its

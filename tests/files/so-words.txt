@@ -1,0 +1,7 @@
+banana 3
+Apple 10
+cherry 2
+apple 1
+banana 3
+  date 20
+Banana 7

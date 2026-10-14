@@ -47,7 +47,13 @@ this replaces them.
   replace), metadata (protection, date, filenote) kept like `Copy CLONE`, roots
   refused, links never followed into, trees walked with explicit lists on the
   heap (the Shell's stack is often 4 KB; `cu_stackleft()` for a check).
-- **Names that clash with 3.2's C:** (Sort, Which, Search, Type) are not used.
+- **Names that clash with 3.2's C:** (Which, Search, Type) are not used. The
+  one exception is `sort` (the user's decision, 2026-10-14): it replaces C:Sort,
+  so it also takes C:Sort's ReadArgs template - any of its keywords (FROM TO
+  COLSTART CASE NUMERIC LEXICOGRAPHIC DESCENDING SKIPBLANKS BUFSIZE), or exactly
+  two names and no -flags, and it behaves as Sort 46.4 does (checked side by
+  side in the emulator, cases in tests/cases/sort.t; the details are in
+  sort.c's header).
   (`find` meets `SYS:System/Find`, a Workbench tool: C: comes before System in
   the standard path, so find in C: wins; the tests put RAM:cu first with
   `Path ... HEAD`, also ahead of an older ls in C:.)
@@ -67,5 +73,7 @@ this replaces them.
   copied:" list),
   `lib/cu_walk.c` (a tree walked with a list on the heap, no locks held between
   calls: find, du), `lib/cu_colours.c` (ENV:FileColours and the kinds of files,
-  from CShell's ls; exec and dos only, so Ahiru and Maki can copy it as it is).
+  from CShell's ls; exec and dos only, so Ahiru and Maki can copy it as it is),
+  `lib/cu_lines.c` (sort: lines kept in 64 KB chunks with a pointer array, and
+  a stable bottom-up merge sort).
 - `src/NAME.c` - one command each, `$VER: NAME 0.1bN (date)`.
