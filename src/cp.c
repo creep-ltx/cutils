@@ -126,7 +126,7 @@ static int treedir(const char *s, const char *d, void *u)
     return 1;
 }
 
-static int treefile(const char *s, const char *d, CuEnt *e, void *u)
+static int treefile(const char *s, const char *d, CuDirEnt *e, void *u)
 {
     (void)u;
     if (CU_LINK(e->type)) {

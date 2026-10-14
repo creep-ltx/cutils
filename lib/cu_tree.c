@@ -55,19 +55,19 @@ int cu_lstat(const char *path, struct FileInfoBlock *fib)
     return r;
 }
 
-void cu_freeents(CuEnt *e)
+void cu_freeents(CuDirEnt *e)
 {
     while (e) {
-        CuEnt *n = e->next;
+        CuDirEnt *n = e->next;
         cu_free(e);
         e = n;
     }
 }
 
-CuEnt *cu_scan(const char *dir, int *ok)
+CuDirEnt *cu_scan(const char *dir, int *ok)
 {
     struct FileInfoBlock *fib;
-    CuEnt *head = NULL, *e;
+    CuDirEnt *head = NULL, *e;
     BPTR l;
     LONG err = 0;
     *ok = 1;
@@ -194,14 +194,14 @@ static void freejobs(Job *j)
 
 int cu_copytree(const char *src, const char *dst,
                 int (*dir)(const char *s, const char *d, void *u),
-                int (*file)(const char *s, const char *d, CuEnt *e, void *u), void *u)
+                int (*file)(const char *s, const char *d, CuDirEnt *e, void *u), void *u)
 {
     Job *head, *tail, *j;
     static char cs[CU_PATH], cd[CU_PATH];
     int all = 1, stop = 0;
     if (!(head = tail = job(src, dst))) return 0;
     while ((j = head) && !stop) {
-        CuEnt *list, *e;
+        CuDirEnt *list, *e;
         int ok, r;
         head = j->next;
         if (!head) tail = NULL;
@@ -239,7 +239,7 @@ int cu_deltree(const char *top, int (*del)(const char *path, LONG type, void *u)
     int all = 1, stop = 0;
     if (!(head = tail = job(top, NULL))) return 0;
     while ((j = head)) {                         /* scan every drawer, top down */
-        CuEnt *list, *e;
+        CuDirEnt *list, *e;
         int ok;
         head = j->next;
         if (!head) tail = NULL;

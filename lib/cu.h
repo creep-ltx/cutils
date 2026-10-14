@@ -67,6 +67,8 @@ int cu_each(const char *arg, int (*fn)(const char *path, void *u), void *u);
 /* An Amiga pattern from * or #? (case blind), for matching names. */
 int cu_pattern(const char *pat, char *parsed, int size);
 int cu_match(const char *parsed, const char *name);
+/* Natural, case blind order: "file9" before "file10" (<0, 0, >0). */
+int cu_natcmp(const char *a, const char *b);
 
 /* ---- paths ---- */
 int cu_join(char *buf, const char *dir, const char *name);   /* 0: too long */
@@ -87,6 +89,44 @@ int cu_open(CuIn *in, const char *path);   /* 0: cu_fault already said why */
 LONG cu_line(CuIn *in, char **line, int *nl);
 LONG cu_read(CuIn *in, char *to, LONG n);  /* raw bytes, through the buffer */
 void cu_close(CuIn *in);
+
+/* ---- cu_walk.c: a tree, walked without recursion ----
+ * cu_walk() calls fn for the start path (depth 0), then for everything
+ * below it, each drawer's entries in natural order, a drawer before its
+ * contents. The walk keeps its own list on the heap (a few hundred bytes
+ * of the Shell's stack whatever the depth) and holds no locks while fn
+ * runs: each drawer is read whole first, so fn may delete or rename.
+ * Links (soft, and hard links to drawers) are never gone into.
+ * fn returns 0 to go on, CU_SKIP (from a drawer's first call) not to go
+ * into it, CU_STOP to end the walk. maxdepth < 0: no limit; else drawers
+ * at that depth are not gone into. CU_WALK_POST: a second call (post 1)
+ * for every drawer after its contents (also one not gone into). A drawer
+ * that cannot be read: a message (rc 5), and on. Ctrl-C ends it (rc 20).
+ * Returns 0, or CU_STOP when fn or Ctrl-C stopped it. */
+#define CU_SKIP 1
+#define CU_STOP 2
+#define CU_WALK_POST 1
+typedef struct {
+    const char *path;            /* the start as given, names joined with / */
+    const char *name;            /* the last part (the start: its own name) */
+    LONG type, size, prot;       /* as in a FileInfoBlock */
+    struct DateStamp date;
+    int depth, post;
+} CuEnt;
+int cu_isdir(LONG type);         /* a drawer one may go into: not a link */
+int cu_walk(const char *start, int flags, int maxdepth, int (*fn)(CuEnt *e, void *u), void *u);
+
+/* ---- cu_colours.c: kinds of files and their colours ----
+ * ENV:FileColours (else ENVARC:, written with the defaults when missing),
+ * shared by ls, Ahiru and Maki: "KIND CTERM,PLAIN" SGR numbers, ".EXT KIND".
+ * cu_colours_load() once, then cu_kind() for an entry and cu_sgr() for the
+ * escape sequence that colours it ("" for none). */
+enum { CU_K_TEXT, CU_K_DRAWER, CU_K_LINK, CU_K_PROGRAM, CU_K_SCRIPT, CU_K_ARCHIVE,
+       CU_K_PICTURE, CU_K_SOUND, CU_K_SOURCE, CU_K_ICON, CU_K_HIDDEN, CU_K_COUNT };
+void cu_colours_load(void);
+int cu_kind(const char *name, LONG type, LONG prot);
+const char *cu_sgr(int kind, int cterm);   /* cterm: CTerm's numbers, else a plain window's */
+int cu_iscterm(BPTR fh);                   /* the handle is a CTerm console */
 
 /* ---- regex.c ---- */
 #define RE_GROUPS 10
@@ -117,22 +157,22 @@ void re_free(void *prog);
  * under "title:" on the error stream. */
 #define CU_LINK(t) ((t) == ST_SOFTLINK || (t) == ST_LINKDIR)
 #define CU_ISDIR(t) ((t) > 0 && !CU_LINK(t))
-typedef struct CuEnt {
-    struct CuEnt *next;
+typedef struct CuDirEnt {
+    struct CuDirEnt *next;
     LONG type, prot;
     struct DateStamp date;
     char *note;                  /* NULL: none */
     char name[1];
-} CuEnt;
+} CuDirEnt;
 int cu_isroot(const char *path);
 int cu_lstat(const char *path, struct FileInfoBlock *fib);
-CuEnt *cu_scan(const char *dir, int *ok);
-void cu_freeents(CuEnt *e);
+CuDirEnt *cu_scan(const char *dir, int *ok);
+void cu_freeents(CuDirEnt *e);
 int cu_copyfile(const char *src, const char *dst, LONG prot, const struct DateStamp *ds, const char *note);
 int cu_clonedir(const char *src, const char *dst);
 int cu_copytree(const char *src, const char *dst,
                 int (*dir)(const char *s, const char *d, void *u),
-                int (*file)(const char *s, const char *d, CuEnt *e, void *u), void *u);
+                int (*file)(const char *s, const char *d, CuDirEnt *e, void *u), void *u);
 int cu_deltree(const char *top, int (*del)(const char *path, LONG type, void *u), void *u);
 void cu_skip(const char *path);
 void cu_skipped(const char *title);

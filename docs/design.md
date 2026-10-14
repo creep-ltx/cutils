@@ -44,6 +44,13 @@ this replaces them.
   refused, links never followed into, trees walked with explicit lists on the
   heap (the Shell's stack is often 4 KB; `cu_stackleft()` for a check).
 - **Names that clash with 3.2's C:** (Sort, Which, Search, Type) are not used.
+  (`find` meets `SYS:System/Find`, a Workbench tool: C: comes before System in
+  the standard path, so find in C: wins; the tests put RAM:cu first with
+  `Path ... HEAD`, also ahead of an older ls in C:.)
+- **The ROM Shell's own characters**: `;` starts a comment, `>` `<` redirect
+  anywhere on the line, a `+` at the end means "more lines follow" (they go to
+  the command's input). find's -exec takes `";"` and `"+"` quoted, or the end
+  of the line.
 - Every command has a header comment that is its manual: usage, flags, return codes.
 
 ## Files
@@ -53,5 +60,8 @@ this replaces them.
   (reading), `lib/regex.c` (POSIX ERE as a Pike VM, from CShell; compiled once),
   `lib/cu_tree.c` (cp mv rm: lstat without following links, a drawer read whole,
   the file copier with metadata, the tree walkers on heap lists, the "not
-  copied:" list).
+  copied:" list),
+  `lib/cu_walk.c` (a tree walked with a list on the heap, no locks held between
+  calls: find, du), `lib/cu_colours.c` (ENV:FileColours and the kinds of files,
+  from CShell's ls; exec and dos only, so Ahiru and Maki can copy it as it is).
 - `src/NAME.c` - one command each, `$VER: NAME 0.1bN (date)`.
