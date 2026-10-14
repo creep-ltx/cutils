@@ -152,17 +152,40 @@ void tui_putc(int col, int row, ULONG c, int fg, int bg, int attr)
 
 /* s as Latin-1 bytes (a program with UTF-8 text decodes it itself and
  * calls tui_putc) */
+/* (tui_put and tui_fill write the cells directly: a full screen drawn
+ * through tui_putc cost top a fifth of a 14 MHz 68020 every second) */
 void tui_put(int col, int row, const char *s, int len, int fg, int bg, int attr)
 {
+    Cell *p;
     int i;
-    for (i = 0; i < len && col + i < gw; i++)
-        tui_putc(col + i, row, (unsigned char)s[i], fg, bg, attr);
+    if (row < 0 || row >= gh) return;
+    if (col < 0) { s -= col; len += col; col = 0; }
+    if (len > gw - col) len = gw - col;
+    p = &want[row * gw + col];
+    for (i = 0; i < len; i++, p++) {
+        unsigned char c = s[i];
+        p->c = c >= 32 && c < 0x7F ? c : cellable(c);
+        p->fg = (UBYTE)fg;
+        p->bg = (UBYTE)bg;
+        p->at = (UBYTE)attr;
+    }
 }
 
 void tui_fill(int col, int row, int w, ULONG c, int fg, int bg, int attr)
 {
+    Cell *p;
     int i;
-    for (i = 0; i < w; i++) tui_putc(col + i, row, c, fg, bg, attr);
+    if (row < 0 || row >= gh) return;
+    if (col < 0) { w += col; col = 0; }
+    if (w > gw - col) w = gw - col;
+    c = cellable(c);
+    p = &want[row * gw + col];
+    for (i = 0; i < w; i++, p++) {
+        p->c = c;
+        p->fg = (UBYTE)fg;
+        p->bg = (UBYTE)bg;
+        p->at = (UBYTE)attr;
+    }
 }
 
 void tui_clear(void)
