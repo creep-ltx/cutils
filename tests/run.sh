@@ -56,6 +56,8 @@ PY
 done
 # the emulator has 8 MB: leave nothing behind (KEEP=1 to look at it afterwards)
 if [ -z "$KEEP" ]; then
-  $W run "Delete >NIL: RAM:cu$S RAM:cut$S RAM:cutest$S.script ALL QUIET FORCE" >/dev/null 2>&1
+  # our rm: the tar cases leave files without the d bit, which Delete refuses
+  $W run "RAM:cu$S/rm -rf RAM:cut$S RAM:cutest$S.script" >/dev/null 2>&1
+  $W run "C:Delete >NIL: RAM:cu$S ALL QUIET FORCE" >/dev/null 2>&1
 fi
 exit $bad
