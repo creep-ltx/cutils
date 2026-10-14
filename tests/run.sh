@@ -54,4 +54,8 @@ print(('ok   ' if not fail else 'BAD  ') + path + f" ({len(blocks)} cases)")
 sys.exit(fail)
 PY
 done
+# the emulator has 8 MB: leave nothing behind (KEEP=1 to look at it afterwards)
+if [ -z "$KEEP" ]; then
+  $W run "Delete >NIL: RAM:cu$S RAM:cut$S RAM:cutest$S.script ALL QUIET FORCE" >/dev/null 2>&1
+fi
 exit $bad
