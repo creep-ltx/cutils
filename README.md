@@ -33,3 +33,7 @@ manual. Design and rules: [docs/design.md](docs/design.md).
 from [AmigaTools](https://github.com/creep-ltx/AmigaTools) with their history. Their
 releases (ls 0.3.4, cp 0.1.2, mv 0.5, mkdir 0.1.1, rm 0.1) stay on AmigaTools' release
 page. The C versions above replace them.
+
+## License
+
+MIT, see [LICENSE](LICENSE).
