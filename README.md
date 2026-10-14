@@ -26,3 +26,10 @@ manual. Design and rules: [docs/design.md](docs/design.md).
 
     make              builds bin/*
     tests/run.sh      the cases in tests/cases/ on the private FS-UAE
+
+## The Amiga E versions
+
+`e/` holds the earlier CUtils in Amiga E (ls cp mv mkdir rm, and vinstall), moved here
+from [AmigaTools](https://github.com/creep-ltx/AmigaTools) with their history. Their
+releases (ls 0.3.4, cp 0.1.2, mv 0.5, mkdir 0.1.1, rm 0.1) stay on AmigaTools' release
+page. The C versions above replace them.
