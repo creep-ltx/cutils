@@ -50,5 +50,8 @@ this replaces them.
 
 - `lib/cu.h` - the shared parts, each described there. `lib/cu.c` (output,
   messages, the command line, paths), `lib/cu_each.c` (patterns), `lib/cu_in.c`
-  (reading), `lib/regex.c` (POSIX ERE as a Pike VM, from CShell; compiled once).
+  (reading), `lib/regex.c` (POSIX ERE as a Pike VM, from CShell; compiled once),
+  `lib/cu_tree.c` (cp mv rm: lstat without following links, a drawer read whole,
+  the file copier with metadata, the tree walkers on heap lists, the "not
+  copied:" list).
 - `src/NAME.c` - one command each, `$VER: NAME 0.1bN (date)`.

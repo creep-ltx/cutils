@@ -1,0 +1,14 @@
+.KEY dir/A
+.BRA {
+.KET }
+; mktree DIR - a fresh small tree for the cp/mv/rm cases:
+;   DIR/f1 "one" (dated 02-Jan-20 13:14:15, +s, filenote "note one")
+;   DIR/sub/f2 "two", DIR/sub/deep/f3 "three", DIR/empty/
+Delete >NIL: {dir} ALL QUIET FORCE
+MakeDir {dir} {dir}/sub {dir}/sub/deep {dir}/empty
+Echo >{dir}/f1 "one"
+Echo >{dir}/sub/f2 "two"
+Echo >{dir}/sub/deep/f3 "three"
+SetDate >NIL: {dir}/f1 02-Jan-20 13:14:15
+Protect >NIL: {dir}/f1 +s
+FileNote >NIL: {dir}/f1 "note one"

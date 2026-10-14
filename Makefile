@@ -8,9 +8,9 @@ AMIGA   = $(HOME)/opt/amiga
 CC      = $(AMIGA)/bin/m68k-amigaos-gcc
 CFLAGS  = -Os -m68020 -noixemul -resident32 -fomit-frame-pointer -fno-common -fbbb=- -Wall -Wno-pointer-sign -Ilib
 LDFLAGS = -m68020 -noixemul -resident32 -s
-CMDS    = cat head tail wc grep tee
+CMDS    = cat head tail wc grep tee cp mv rm mkdir touch
 LIB     = build/libcu.a
-LIBOBJ  = build/cu.o build/cu_each.o build/cu_in.o build/regex.o
+LIBOBJ  = build/cu.o build/cu_each.o build/cu_in.o build/cu_tree.o build/regex.o
 
 all: $(addprefix bin/,$(CMDS))
 

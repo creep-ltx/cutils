@@ -36,9 +36,9 @@ $ cat -v crlf.txt
 dos one^M
 dos two^M
 $ cat #?.txt | wc -l
-113
+119
 $ cat *.txt | wc -l
-113
+119
 $ cat nope.txt
 cat: nope.txt: object not found
 ? 5
