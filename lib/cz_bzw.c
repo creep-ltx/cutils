@@ -21,7 +21,18 @@ static int bzw_create(CzOut *z, int level)
     if (!g) { cz_seterr("out of memory"); return -1; }
     memset(&g->s, 0, sizeof g->s);
     g->s.bzalloc = bzalloc; g->s.bzfree = bzfree;
+    /* the default (no level asked) is 9, as GNU's; where 9's 7.6 MB is not
+     * there, the strongest level that fits (each level is 100 KB of block,
+     * about 0.8 MB of memory); a level asked for is kept, or refused */
     r = BZ2_bzCompressInit(&g->s, level ? level : 9, 0, 0);
+    if (!level) {
+        int l = 9;
+        while (r == BZ_MEM_ERROR && --l >= 1) {
+            memset(&g->s, 0, sizeof g->s);
+            g->s.bzalloc = bzalloc; g->s.bzfree = bzfree;
+            r = BZ2_bzCompressInit(&g->s, l, 0, 0);
+        }
+    }
     if (r != BZ_OK) {
         cu_free(g);
         cz_seterr(r == BZ_MEM_ERROR ? "out of memory (a lower level needs less)" : "bzip2 would not start");
