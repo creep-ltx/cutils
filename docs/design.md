@@ -23,6 +23,7 @@ this replaces them.
   **man installed 2026-10-14** (the user's go): C:man, 31 pages in HELP:Man/english/CUtils/,
   and in S:User-Startup a `;BEGIN CUtils` block after CCon's: `Assign MAN: HELP:Man`
   (S:User-Startup.bak-man kept). tee and tail 0.1b2 there too. 970 test cases green.
+  man 0.1b2 installed the same evening: pages now NAME.md (the .man ones deleted), roff read.
 - Added 2026-10-14, tested in FS-UAE only (not yet on the A1200): diff, which, date,
   basename, dirname, seq, file, stat, ln, chmod. `which` and `date` replace C:Which and
   C:Date (see the rule below); installing them means keeping the originals aside.
