@@ -32,6 +32,7 @@ know, one small pure program each, made for `C:` and for csh pipes.
 | mv   | move: Rename() on one volume, copy+delete across, trees all or nothing; -f -b | 0.1b1, tested in FS-UAE |
 | ps   | the Shells and what they run (as Status), or every task (-e); stack headroom (-l) | 0.1b1, tested in FS-UAE |
 | rm   | delete: drawers only with -r, roots never, links as links; -r -f -v | 0.1b1, tested in FS-UAE |
+| sed | the stream editor, GNU sed's language: s y d D p P n N g G h H x b t T a i c r R w W = l q Q F z { } !, every address form (N $ /re/I first~step a,b a,+N a,~N 0,/re/), basic and -E regular expressions, \U \L \u \l; -n -i[SUFFIX] -s -u -z -E -f -e | 0.1b1, tested in FS-UAE and against GNU sed on Linux |
 | seq | numbers from FIRST by INC to LAST, also decimals and negatives; -w -s -f | 0.1b1, tested in FS-UAE |
 | sort | lines in order: -n -h -V -M -f -d -i -b -r -u -s -c -C -k POS1,POS2 -t -o; also takes C:Sort's FROM TO COLSTART CASE NUMERIC LEXICOGRAPHIC DESCENDING SKIPBLANKS (replaces it) | 0.1b1, tested in FS-UAE side by side with C:Sort |
 | stat | size, blocks, protection bits, date, comment, type, link target; -L -t -c FORMAT | 0.1b1, tested in FS-UAE |
@@ -53,6 +54,7 @@ Every command answers `?` with its usage, and has a manual page: `man NAME`
 
     make              builds bin/*
     tests/run.sh      the cases in tests/cases/ on the private FS-UAE
+    tests/sed-pc/run.sh  sed.c against GNU sed on Linux, and the 68020 build under vamos
 
 ## The Amiga E versions
 

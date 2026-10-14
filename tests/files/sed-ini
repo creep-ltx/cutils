@@ -1,0 +1,5 @@
+[main]
+name = cu
+; comment
+[other]
+key=val

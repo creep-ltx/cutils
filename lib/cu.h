@@ -175,7 +175,10 @@ void cu_protstr(LONG prot, char *b);
 
 /* ---- regex.c ---- */
 #define RE_GROUPS 10
-void *re_comp(const char *re, int nocase);
+#define RE_ICASE 1               /* upper and lower case the same */
+#define RE_LONGEST 2             /* POSIX: the longest of the leftmost matches (else the first by the pattern's order) */
+#define RE_MULTILINE 4           /* ^ and $ also next to a newline in the text */
+void *re_comp(const char *re, int flags);
 int re_exec(void *prog, const char *s, int len, int from, int *caps);   /* from: where the search starts; ^ only at s[0] */
 void re_free(void *prog);
 

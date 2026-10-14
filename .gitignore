@@ -6,3 +6,8 @@ tests/cz-pc/pc
 tests/cz-pc/pc-asan
 tests/cz-pc/am
 tests/cz-pc/czt-am.o
+tests/sed-pc/w/
+tests/sed-pc/lsed
+tests/sed-pc/lsed-asan
+tests/sed-pc/*.o
+tests/sed-pc/__pycache__/

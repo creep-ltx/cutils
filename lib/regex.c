@@ -1,15 +1,17 @@
 /* regex.c - POSIX extended regular expressions (from CShell's [[ =~ ]]): the
  * parts scripts use - . [...] [^...] [[:alpha:]] ^ $ ( ) | * + ? {n,m},
- * \x for a plain x, and GNU's \w \W \s \S. Compiled to a small program and
+ * \x for a plain x, and GNU's \w \W \s \S, \b \B \< \> (word edges) and \` \'
+ * (the very start and end; ^ $ too, unless RE_MULTILINE). Compiled to a small program and
  * run as a Pike VM (Russ Cox, "Regular Expression Matching: the Virtual
  * Machine Approach"): every thread steps through the text together, so no
  * pattern can make it slow (no backtracking blow-up). Leftmost match;
  * among those the first by the pattern's order (Perl's, not POSIX's
- * longest - the same for what scripts write). Compiled once, run per line. */
+ * longest - the same for what scripts write); with RE_LONGEST (sed) the
+ * longest of the leftmost matches, as POSIX says. Compiled once, run per line. */
 #include <string.h>
 #include "cu.h"
 
-enum { R_CHAR, R_ANY, R_CLASS, R_BOL, R_EOL, R_SPLIT, R_JMP, R_SAVE, R_MATCH };
+enum { R_CHAR, R_ANY, R_CLASS, R_BOL, R_EOL, R_SPLIT, R_JMP, R_SAVE, R_MATCH, R_WORDB, R_NWORDB, R_WBEG, R_WEND, R_BOT, R_EOT };
 
 typedef struct { unsigned char op, c; short x, y; } RInst;    /* x, y: jumps, relative */
 
@@ -20,13 +22,14 @@ typedef struct { unsigned char op, c; short x, y; } RInst;    /* x, y: jumps, re
 typedef struct {
     const char *p;
     RInst code[RMAXI];
-    int n, err, ngroup, nocase;
+    int n, err, ngroup, nocase, longest, multi;
     unsigned char cls[RMAXC][32];
     int ncls;
     void *mark, *ta, *tb;               /* the machine's lists, made once by re_comp */
     int nslots;                         /* the capture slots in use (copied per thread) */
     int hasfirst;                       /* first: the bytes a match can start with */
     unsigned char first[32];
+    RInst tmp[RMAXI];                   /* {n,m}: the repeated part, copied */
 } RC;
 
 static int lower(int c) { c &= 0xff; return (c >= 'A' && c <= 'Z') || (c >= 0xc0 && c <= 0xde && c != 0xd7) ? c + 32 : c; }
@@ -143,6 +146,12 @@ static void atom(RC *r)
         c = *r->p;
         if (!c) { r->err = 1; return; }
         r->p++;
+        if (c == 'b') { emit(r, R_WORDB, 0, 0, 0); return; }
+        if (c == 'B') { emit(r, R_NWORDB, 0, 0, 0); return; }
+        if (c == '<') { emit(r, R_WBEG, 0, 0, 0); return; }
+        if (c == '>') { emit(r, R_WEND, 0, 0, 0); return; }
+        if (c == '`') { emit(r, R_BOT, 0, 0, 0); return; }
+        if (c == '\'') { emit(r, R_EOT, 0, 0, 0); return; }
         if (c == 'w' || c == 'W' || c == 's' || c == 'S') {
             int k = newclass(r);
             if (r->err) return;
@@ -169,7 +178,8 @@ static int braces(const char *p, int *lo, int *hi)
         if (*q >= '0' && *q <= '9') { b = 0; while (*q >= '0' && *q <= '9') b = b * 10 + *q++ - '0'; }
         else b = -1;
     }
-    if (*q != '}' || (b >= 0 && b < a) || a > 100 || b > 100) return -1;
+    if (*q != '}' || (b >= 0 && b < a)) return -1;
+    if (a > 100 || b > 100) return -2;        /* too many to copy out: an error, not a plain { */
     *lo = a; *hi = b;
     return q + 1 - p;
 }
@@ -182,8 +192,8 @@ static void repeat(RC *r)
         int e = r->n, len = e - s, lo, hi, k, used;
         char q = *r->p;
         if (q == '{') {
-            RInst t[RMAXI];
-            if ((used = braces(r->p, &lo, &hi)) < 0) return;
+            RInst *t = r->tmp;               /* on the heap: the Shell's stack is often 4 KB, and groups nest */
+            if ((used = braces(r->p, &lo, &hi)) < 0) { if (used == -2) r->err = 1; return; }
             r->p += used;
             memcpy(t, r->code + s, len * sizeof t[0]);
             r->n = s;
@@ -236,6 +246,14 @@ typedef struct { int pc; int caps[RSLOTS]; } Thr;
 typedef struct { Thr *t; int n; } TList;
 typedef struct { RC *r; const char *s; int len, gen; int *mark; } VM;
 
+static int wordc(const VM *v, int at)
+{
+    int c;
+    if (at < 0 || at >= v->len) return 0;
+    c = (unsigned char)v->s[at];
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_';
+}
+
 static void add(VM *v, TList *l, int pc, int *caps, int sp)
 {
     RInst *in;
@@ -252,8 +270,16 @@ static void add(VM *v, TList *l, int pc, int *caps, int sp)
         caps[in->x] = old;
         return;
     }
-    case R_BOL: if (sp == 0) add(v, l, pc + 1, caps, sp); return;
-    case R_EOL: if (sp == v->len) add(v, l, pc + 1, caps, sp); return;
+    case R_BOL: if (sp == 0 || (v->r->multi && v->s[sp - 1] == '\n')) add(v, l, pc + 1, caps, sp); return;
+    case R_EOL: if (sp == v->len || (v->r->multi && v->s[sp] == '\n')) add(v, l, pc + 1, caps, sp); return;
+    case R_BOT: if (sp == 0) add(v, l, pc + 1, caps, sp); return;
+    case R_EOT: if (sp == v->len) add(v, l, pc + 1, caps, sp); return;
+    case R_WORDB: case R_NWORDB: case R_WBEG: case R_WEND: {
+        int a = wordc(v, sp - 1), b = wordc(v, sp), ok;
+        ok = in->op == R_WORDB ? a != b : in->op == R_NWORDB ? a == b : in->op == R_WBEG ? !a && b : a && !b;
+        if (ok) add(v, l, pc + 1, caps, sp);
+        return;
+    }
     }
     l->t[l->n].pc = pc;
     memcpy(l->t[l->n].caps, caps, v->r->nslots * sizeof(int));
@@ -278,20 +304,22 @@ static int firstset(RC *r, int pc, unsigned char *seen)
     case R_CLASS:
         for (c = 0; c < 32; c++) r->first[c] |= r->cls[in->x][c];
         return 1;
-    case R_BOL: case R_SAVE: return firstset(r, pc + 1, seen);
+    case R_BOL: case R_BOT: case R_SAVE: case R_WORDB: case R_NWORDB: case R_WBEG: case R_WEND: return firstset(r, pc + 1, seen);
     case R_JMP: return firstset(r, pc + in->x, seen);
     case R_SPLIT: return firstset(r, pc + in->x, seen) && firstset(r, pc + in->y, seen);
     }
     return 0;                                /* . $ or the end: anything */
 }
 
-/* Compiled once (grep runs it on every line): NULL when the pattern is bad. */
-void *re_comp(const char *re, int nocase)
+/* Compiled once (grep runs it on every line): NULL when the pattern is bad.
+ * flags: RE_ICASE (1, so grep's old nocase still works), RE_LONGEST,
+ * RE_MULTILINE (^ and $ also at newlines inside the text: sed's M). */
+void *re_comp(const char *re, int flags)
 {
     RC *r = cu_alloc(sizeof *r);
     if (!r) return NULL;
     memset(r, 0, sizeof *r);
-    r->p = re; r->nocase = nocase;
+    r->p = re; r->nocase = flags & RE_ICASE; r->longest = (flags & RE_LONGEST) != 0; r->multi = (flags & RE_MULTILINE) != 0;
     emit(r, R_SAVE, 0, 0, 0);
     alt(r);
     if (*r->p) r->err = 1;                  /* a ) with no ( */
@@ -335,7 +363,11 @@ int re_exec(void *prog, const char *s, int len, int from, int *caps)
             if (sp >= len) break;
         }
         if (!matched) add(&v, cl, 0, start, sp);   /* a new start here, behind the older ones */
-        if (!cl->n) break;
+        if (!cl->n) {                              /* none can start here ($, \b failed): on to the next */
+            if (matched || sp >= len) break;
+            v.gen++;
+            continue;
+        }
         v.gen++;
         nl->n = 0;
         for (k = 0; k < cl->n; k++) {
@@ -343,10 +375,18 @@ int re_exec(void *prog, const char *s, int len, int from, int *caps)
             RInst *in = &r->code[th->pc];
             int c = sp < v.len ? (unsigned char)s[sp] : -1, ok = 0;
             if (in->op == R_MATCH) {
+                if (r->longest) {            /* the leftmost start, then the longest */
+                    if (!matched || th->caps[0] < caps[0] || (th->caps[0] == caps[0] && th->caps[1] > caps[1])) {
+                        matched = 1;
+                        memcpy(caps, th->caps, sizeof th->caps);
+                    }
+                    continue;
+                }
                 matched = 1;
                 memcpy(caps, th->caps, sizeof th->caps);
                 break;                       /* the threads after it have lower priority */
             }
+            if (matched && r->longest && th->caps[0] > caps[0]) continue;   /* started later: cannot win */
             if (c < 0) continue;
             if (in->op == R_CHAR) ok = (nocase ? lower(c) : c) == in->c;
             else if (in->op == R_ANY) ok = 1;
@@ -356,7 +396,13 @@ int re_exec(void *prog, const char *s, int len, int from, int *caps)
         if (sp >= v.len && !nl->n) break;
         t = cl; cl = nl; nl = t;
         if (sp >= v.len) {                   /* matches waiting at the very end */
-            for (k = 0; k < cl->n; k++) if (r->code[cl->t[k].pc].op == R_MATCH) { matched = 1; memcpy(caps, cl->t[k].caps, sizeof cl->t[0].caps); break; }
+            for (k = 0; k < cl->n; k++) {
+                Thr *th = &cl->t[k];
+                if (r->code[th->pc].op != R_MATCH) continue;
+                if (r->longest && matched && !(th->caps[0] < caps[0] || (th->caps[0] == caps[0] && th->caps[1] > caps[1]))) continue;
+                matched = 1; memcpy(caps, th->caps, sizeof th->caps);
+                if (!r->longest) break;
+            }
             break;
         }
     }

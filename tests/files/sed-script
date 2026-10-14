@@ -1,0 +1,9 @@
+# a sed script
+s/a/A/
+/b/{
+  s/b/B/
+  a\
+after b
+}
+$i\
+before last
