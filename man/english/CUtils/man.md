@@ -13,7 +13,8 @@ works.
 
 man finds pages in this order, and the first one wins:
 
-    MAN:LANG/PROGRAM/NAME.man         pages installed for programs
+    MAN:LANG/PROGRAM/NAME.md          pages installed for programs
+                                      (or NAME.1 ... NAME.9: Unix pages)
     HELP:LANG/Sys/DRAWER/NAME.help    the system's own pages (3.2)
     the same two in english
     NAME.guide or NAME.doc            next to the program, or in HELP:
@@ -22,10 +23,11 @@ LANG is the language chosen in Locale prefs (english without
 locale.library). MAN: is an assign: on AmigaOS 3.x it usually points to
 HELP:Man, on older systems to SYS:Man. Add your own pages with
 `Assign MAN: Work:MyPages ADD` and put them in
-`Work:MyPages/english/Mine/NAME.man`.
+`Work:MyPages/english/Mine/NAME.md`.
 
-Pages may be .man files (marked-up text, see `docs/man.md`), plain text
-in the manual's own form (NAME, FORMAT, TEMPLATE...), or AmigaGuide.
+Pages may be Markdown (.md), real Unix man pages (roff: .1 to .9, so a
+ported tool's manual works as it is), plain text in the manual's own form
+(NAME, FORMAT, TEMPLATE...), or AmigaGuide.
 
 ## OPTIONS
 - **-a** every page found for NAME, one after another, not only the
@@ -58,6 +60,7 @@ text is wrapped again to the new width.
     man -k copy
     man -w list
     man -L svenska list
+    man -l Work:curl/curl.1
     man grep | grep -i colour
     SetEnv PAGER Maki
 

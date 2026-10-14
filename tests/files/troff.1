@@ -1,0 +1,41 @@
+.\" troff.1 - a test page for man's roff reader (written for CUtils)
+.de XX
+this macro body must not show
+..
+.TH TROFF 1 "2026-10-14" "CUtils" "Test pages"
+.SH NAME
+troff \- a test page in the Unix man format
+.SH SYNOPSIS
+.B troff
+[\fB\-ab\fR]
+[\fIFILE\fR...]
+.SH DESCRIPTION
+This paragraph is written on
+two lines, joined and wrapped.
+.B Bold words
+and
+.I underlined ones
+and \fBinline bold\fR, a dash \- and quotes \(lqlike this\(rq.
+.PP
+A second paragraph.
+.if n .ds X nothing to see
+.SH OPTIONS
+.TP
+.B \-a
+the first option.
+.TP
+.BR \-\-long ", " \-l
+a long term goes on its own line.
+.IP \(bu 4
+a bullet item
+.RS
+.IP inner 8
+an indented item
+.RE
+.SS Examples
+.nf
+troff \-a Work:
+  kept as it is
+.fi
+.SH SEE ALSO
+.BR man (1)

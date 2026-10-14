@@ -10,14 +10,15 @@
  * page goes to that viewer instead, in colour.
  *
  * Where pages are found (docs/man.md has the why), the first one wins:
- *   MAN:LANG/PROGRAM/NAME.man         our pages (MAN: is an assign, often
- *                                     HELP:Man; Assign ADD for your own)
+ *   MAN:LANG/PROGRAM/NAME.md          our pages, Markdown (MAN: is an assign,
+ *                                     often HELP:Man; Assign ADD for your own);
+ *                                     also NAME.1 ... NAME.9 (real Unix pages)
  *   HELP:LANG/Sys/DRAWER/NAME.help    the system's own (3.2: 110 commands)
  *   the same two in english
  *   NAME.guide, NAME.doc, NAME.readme next to the program (found as the
  *   Shell finds commands), or at the top of HELP:
  * LANG is the one set in Locale prefs (english without locale.library).
- * Pages may be .man (marked-up text), plain text, or AmigaGuide.
+ * Pages may be Markdown, roff (the man(7) macros), plain text, or AmigaGuide.
  *
  *   -a every page found, one after another   -w where the page is, not
  *   the page   -L LANG another language   -k WORD the pages whose name
@@ -38,7 +39,7 @@
 #include <utility/tagitem.h>
 
 const char *cu_name = "man";
-static const char version[] = "$VER: man 0.1b1 (14.10.2026)";
+static const char version[] = "$VER: man 0.1b2 (14.10.2026)";
 
 struct LocaleBase *LocaleBase;
 
@@ -124,8 +125,12 @@ static int eachsub(const char *dir, int (*fn)(const char *sub, void *u), void *u
     return r;
 }
 
+/* the endings a page in MAN: may have: Markdown, the first beta's .man,
+ * and real Unix man pages (roff) by section */
+static const char *const manexts[] = { ".md", ".man", ".1", ".8", ".6", ".5", ".7", ".3", ".2", ".4", ".9", ".n", NULL };
+
 typedef struct {
-    const char *name, *ext, *lang, *mid;   /* mid: "" or "Sys" between LANG and PROGRAM */
+    const char *name, *ext, *lang, *mid;   /* mid: "" or "Sys" between LANG and PROGRAM; ext NULL: manexts */
     char found[CU_PATH];
     int count;                              /* -a: pages shown so far */
     int (*show)(const char *path);
@@ -135,13 +140,18 @@ static int trysub(const char *sub, void *u)
 {
     Find *f = u;
     char p[CU_PATH], file[64];
-    if (strlen(f->name) + strlen(f->ext) + 1 > sizeof file) return 0;
-    strcpy(file, f->name); strcat(file, f->ext);
-    if (!cu_join(p, sub, file) || !exists(p)) return 0;
-    strcpy(f->found, p);
-    f->count++;
-    if (o_all && f->show) { f->show(p); return 0; }
-    return 1;
+    int e;
+    for (e = 0; f->ext ? e < 1 : manexts[e] != NULL; e++) {
+        const char *ext = f->ext ? f->ext : manexts[e];
+        if (strlen(f->name) + strlen(ext) + 1 > sizeof file) return 0;
+        strcpy(file, f->name); strcat(file, ext);
+        if (!cu_join(p, sub, file) || !exists(p)) continue;
+        strcpy(f->found, p);
+        f->count++;
+        if (o_all && f->show) { f->show(p); continue; }
+        return 1;
+    }
+    return 0;
 }
 
 static int trylang(const char *dir, void *u)
@@ -205,7 +215,7 @@ static int findpage(const char *name, char *out, int (*show)(const char *path), 
     for (pass = 0; pass < 2; pass++) {
         f.lang = pass ? "english" : lang;
         if (pass && !strcmp(lang, "english")) break;
-        f.ext = ".man"; f.mid = "";
+        f.ext = NULL; f.mid = "";
         if (eachdir("MAN:", trylang, &f)) goto found;
         if (!exists("MAN:")) {               /* no MAN: yet: where it would point */
             if (trylang("HELP:Man", &f)) goto found;
@@ -305,15 +315,25 @@ static void wrap(const char *t, int col0, int col)
     }
 }
 
-/* inline marks of a .man line: **bold** `code` *under* \x */
+/* inline marks of a Markdown line: **bold** __bold__ `code` *em* _em_
+ * (em shown underlined), \x a plain x; nothing inside `code` is special */
 static void inline_(const char *s, char *d, int size)
 {
     int k = 0, bold = 0, code = 0, under = 0;
+    const char *start = s;
     for (; *s && k < size - 3; s++) {
-        if (*s == '\\' && (s[1] == '*' || s[1] == '`' || s[1] == '\\')) { d[k++] = *++s; continue; }
-        if (s[0] == '*' && s[1] == '*' && !code) { bold = !bold; d[k++] = bold ? S_BOLD : S_OFF; s++; continue; }
-        if (*s == '`') { code = !code; d[k++] = code ? S_BOLD : S_OFF; continue; }
-        if (*s == '*' && !code && (under || (s[1] && s[1] != ' '))) { under = !under; d[k++] = under ? S_UNDER : S_OFF; continue; }
+        if (code) {
+            if (*s == '`') { code = 0; d[k++] = S_OFF; }
+            else if (!ISMARK(*s)) d[k++] = *s;
+            continue;
+        }
+        if (*s == '\\' && s[1] && strchr("\\`*_{}[]()#+-.!<>|~\"'", s[1])) { d[k++] = *++s; continue; }
+        if (*s == '`') { code = 1; d[k++] = S_BOLD; continue; }
+        if ((s[0] == '*' || s[0] == '_') && s[1] == s[0]) { bold = !bold; d[k++] = bold ? S_BOLD : S_OFF; s++; continue; }
+        if (*s == '*' && (under || (s[1] && s[1] != ' '))) { under = !under; d[k++] = under ? S_UNDER : S_OFF; continue; }
+        /* _em_ only at word edges, so snake_case_names stay as they are */
+        if (*s == '_' && !under && (s == start || s[-1] == ' ' || s[-1] == '(') && s[1] && s[1] != ' ') { under = 1; d[k++] = S_UNDER; continue; }
+        if (*s == '_' && under && (!s[1] || strchr(" .,;:)!?", s[1]))) { under = 0; d[k++] = S_OFF; continue; }
         if (ISMARK(*s)) continue;
         d[k++] = *s;
     }
@@ -531,8 +551,327 @@ static void render_guide(Lines *src)
     }
 }
 
+/* ---- real Unix man pages (roff, the man(7) macros) ---------------- */
+
+/* a roff page: an ending .1 to .9 / .n, or its first lines are macros */
+static int isroff(Lines *ls, const char *dot)
+{
+    int i;
+    if (dot && dot[1] && !dot[2] && ((dot[1] >= '0' && dot[1] <= '9') || dot[1] == 'n')) return 1;
+    for (i = 0; i < ls->n && i < 20; i++) {
+        const char *l = ls->l[i];
+        if (!l[0] || !strncmp(l, ".\\\"", 3) || !strncmp(l, "'\\\"", 3)) continue;
+        return l[0] == '.' && (!strncmp(l, ".TH", 3) || !strncmp(l, ".Dd", 3) || !strncmp(l, ".SH", 3) || !strncmp(l, ".so", 3));
+    }
+    return 0;
+}
+
+/* a special character's name (\(xx or \[name]) as Latin-1 / ASCII */
+static const char *glyph(const char *n, int len)
+{
+    static const struct { const char *n, *s; } g[] = {
+        { "em", "--" }, { "en", "-" }, { "hy", "-" }, { "mi", "-" }, { "bu", "o" }, { "aq", "'" },
+        { "dq", "\"" }, { "lq", "\"" }, { "rq", "\"" }, { "oq", "'" }, { "cq", "'" }, { "co", "(C)" },
+        { "rg", "(R)" }, { "tm", "(TM)" }, { "ga", "`" }, { "ti", "~" }, { "ha", "^" }, { "rs", "\\" },
+        { "sl", "/" }, { "ba", "|" }, { "lB", "[" }, { "rB", "]" }, { "lC", "{" }, { "rC", "}" },
+        { "la", "<" }, { "ra", ">" }, { "Fo", "\xab" }, { "Fc", "\xbb" }, { "de", "\xb0" }, { "mu", "x" },
+        { "<=", "<=" }, { ">=", ">=" }, { "->", "->" }, { "<-", "<-" }, { "ss", "\xdf" }, { "a:", "\xe4" },
+        { "o:", "\xf6" }, { "u:", "\xfc" }, { "A:", "\xc4" }, { "O:", "\xd6" }, { "U:", "\xdc" },
+        { "ao", "\xe5" }, { "AO", "\xc5" }, { "e'", "\xe9" }, { "pl", "+" }, { "eq", "=" }, { "or", "|" },
+        { NULL, NULL }
+    };
+    int i;
+    for (i = 0; g[i].n; i++) if ((int)strlen(g[i].n) == len && !strncmp(g[i].n, n, len)) return g[i].s;
+    return "?";
+}
+
+/* roff text (escapes, fonts) to marked text */
+static void rtext(const char *s, char *d, int size, int *k)
+{
+    while (*s && *k < size - 6) {
+        if (*s != '\\') { d[(*k)++] = *s++; continue; }
+        s++;
+        switch (*s) {
+        case 0: return;
+        case 'f': {                               /* fonts: \fB \fI \fR \fP \f(CW \f[B] */
+            char f = 0;
+            if (s[1] == '(') { f = s[2]; s += s[2] && s[3] ? 4 : 2; }
+            else if (s[1] == '[') { const char *e = strchr(s, ']'); f = s[2]; s = e ? e + 1 : s + 2; }
+            else { f = s[1]; s += s[1] ? 2 : 1; }
+            d[(*k)++] = f == 'B' ? S_BOLD : f == 'I' ? S_UNDER : S_OFF;
+            continue;
+        }
+        case '(':                                 /* \(xx */
+            if (s[1] && s[2]) { const char *g = glyph(s + 1, 2); while (*g) d[(*k)++] = *g++; s += 3; }
+            else s++;
+            continue;
+        case '[': {                               /* \[name] */
+            const char *e = strchr(s, ']');
+            if (e) { const char *g = glyph(s + 1, e - s - 1); while (*g) d[(*k)++] = *g++; s = e + 1; }
+            else s++;
+            continue;
+        }
+        case '*':                                 /* strings: \*(lq \*R \*[xx] */
+            if (s[1] == '(' && s[2] && s[3]) { const char *g = glyph(s + 2, 2); while (*g) d[(*k)++] = *g++; s += 4; }
+            else if (s[1] == '[') { const char *e = strchr(s, ']'); s = e ? e + 1 : s + 2; }
+            else { if (s[1] == 'R') { d[(*k)++] = '('; d[(*k)++] = 'R'; d[(*k)++] = ')'; } s += s[1] ? 2 : 1; }
+            continue;
+        case 's':                                 /* sizes: \s-1 \s0 \s+2 */
+            s++;
+            if (*s == '+' || *s == '-') s++;
+            if (*s >= '0' && *s <= '9') s++;
+            continue;
+        case '"': return;                         /* a comment to the end */
+        case '&': case '|': case '^': case ',': case '/': case 'c': case ':': s++; continue;
+        case 'e': case '\\': d[(*k)++] = '\\'; s++; continue;
+        case '-': d[(*k)++] = '-'; s++; continue;
+        case ' ': case '~': case '0': d[(*k)++] = ' '; s++; continue;
+        case '.': d[(*k)++] = '.'; s++; continue;
+        case 'N': case 'h': case 'v': case 'w': case 'o': case 'X': case 'k': case 'n': case 'm': case 'g': {
+            /* \N'..', \h'..', \n(xx ...: dropped */
+            if (s[1] == '\'') { const char *e = strchr(s + 2, '\''); s = e ? e + 1 : s + 2; }
+            else if (s[1] == '(') s += s[2] && s[3] ? 4 : 2;
+            else if (s[1] == '[') { const char *e = strchr(s, ']'); s = e ? e + 1 : s + 2; }
+            else s += s[1] ? 2 : 1;
+            continue;
+        }
+        default: d[(*k)++] = *s++; continue;
+        }
+    }
+}
+
+/* a macro line's arguments, "quoted ones" whole */
+static int rargs(char *s, char **av, int max)
+{
+    int n = 0;
+    while (*s && n < max) {
+        while (*s == ' ' || *s == '\t') s++;
+        if (!*s) break;
+        if (*s == '"') {
+            char *d = ++s;
+            av[n++] = d;
+            while (*s && !(*s == '"' && s[1] != '"')) { if (*s == '"') s++; *d++ = *s++; }
+            if (*s) s++;
+            *d = 0;
+            if (*s) s++;
+        } else {
+            av[n++] = s;
+            while (*s && *s != ' ' && *s != '\t') s++;
+            if (*s) *s++ = 0;
+        }
+    }
+    return n;
+}
+
+static char rpara[4096];
+static int rlen, rind, rtag, rtagw, rnofill, rblank;
+static char rterm[512];
+static int rtermlen, rwantterm;
+static int rsstack[16], rsn;           /* .RS amounts, for .RE */
+
+static void rflush(void)
+{
+    char t[4096];
+    int k = 0;
+    if (rtermlen) {
+        /* a .TP/.IP term: on its own, or the text beside it */
+        olen = ocol = 0;
+        ospaces(BODY + rind);
+        rterm[rtermlen] = 0;
+        { char *c = rterm; while (*c) obyte(*c++); }
+        obyte(S_OFF);
+        if (ocol + 1 > BODY + rind + rtagw || !rlen) { emit(); if (rlen) ospaces(BODY + rind + rtagw); }
+        else ospaces(BODY + rind + rtagw - ocol);
+        rtermlen = 0;
+        if (!rlen) return;
+    } else {
+        olen = ocol = 0;
+    }
+    if (!rlen) return;
+    rpara[rlen] = 0;
+    memcpy(t, rpara, rlen + 1);
+    k = rlen;
+    (void)k;
+    if (rtag) wrap(t, ocol > 0 ? ocol : BODY + rind + rtagw, BODY + rind + rtagw);
+    else wrap(t, BODY + rind, BODY + rind);
+    emit();
+    rlen = 0;
+    rblank = 0;
+}
+
+static void rbreak(int blank)
+{
+    rflush();
+    /* a blank line between paragraphs, not right under a heading */
+    if (blank && out.n && out.l[out.n - 1][0] && out.l[out.n - 1][0] != S_HEAD &&
+        !(out.l[out.n - 1][0] == ' ' && out.l[out.n - 1][1] == ' ' && out.l[out.n - 1][2] == S_HEAD))
+        addline(&out, "", 0);
+}
+
+/* text into the paragraph (fill mode), or a line as it is (no-fill) */
+static void radd(const char *text)
+{
+    char t[2048];
+    int k = 0;
+    rtext(text, t, sizeof t, &k);
+    t[k] = 0;
+    if (rwantterm) {                            /* the line after .TP is the term */
+        if (rtermlen + k < (int)sizeof rterm - 2) { memcpy(rterm + rtermlen, t, k); rtermlen += k; }
+        rwantterm = 0;
+        return;
+    }
+    if (rnofill) {
+        olen = ocol = 0;
+        ospaces(BODY + rind + 2);
+        { char *c = t; while (*c) obyte(*c++); }
+        obyte(S_OFF);
+        emit();
+        return;
+    }
+    if (rlen && rlen < (int)sizeof rpara - 1) rpara[rlen++] = ' ';
+    if (rlen + k < (int)sizeof rpara - 2) { memcpy(rpara + rlen, t, k); rlen += k; }
+}
+
+/* .B .I .BR .IR ...: arguments in alternating fonts, joined without spaces
+ * (two letters) or with them (one) */
+static void rfonts(const char *m, char **av, int ac)
+{
+    char t[2048];
+    int i, k = 0, two = m[1] != 0;
+    for (i = 0; i < ac && k < (int)sizeof t - 8; i++) {
+        char f = two ? m[i & 1] : m[0];
+        int len = strlen(av[i]);
+        if (i && !two) t[k++] = ' ';
+        t[k++] = '\\'; t[k++] = 'f'; t[k++] = f == 'R' ? 'R' : f == 'I' ? 'I' : 'B';
+        if (k + len >= (int)sizeof t - 4) break;
+        memcpy(t + k, av[i], len); k += len;
+    }
+    t[k++] = '\\'; t[k++] = 'f'; t[k++] = 'R';
+    t[k] = 0;
+    radd(t);
+}
+
+static void render_roff(Lines *srcl)
+{
+    int i;
+    rlen = rind = rtag = rnofill = rtermlen = rwantterm = rsn = 0;
+    rtagw = 8;
+    for (i = 0; i < srcl->n; i++) {
+        char line[1024], *av[12], *m;
+        int ac;
+        strncpy(line, srcl->l[i], sizeof line - 1);
+        line[sizeof line - 1] = 0;
+        if (line[0] != '.' && line[0] != '\'') {
+            if (!line[0] && !rnofill) { rbreak(1); continue; }
+            if (line[0] == ' ' && !rnofill) rflush();   /* a line starting with a blank breaks */
+            radd(line);
+            continue;
+        }
+        m = line + 1;
+        while (*m == ' ' || *m == '\t') m++;
+        if (m[0] == '\\' && m[1] == '"') continue;      /* a comment */
+        /* macro definitions and ignored blocks run to a line "..": not text */
+        if (!strncmp(m, "de", 2) || !strncmp(m, "am", 2) || !strncmp(m, "ig", 2)) {
+            while (++i < srcl->n && strncmp(srcl->l[i], "..", 2)) ;
+            continue;
+        }
+        /* conditionals (.if .ie .el): skipped, with a \{ ... \} block they open */
+        if (!strncmp(m, "if", 2) || !strncmp(m, "ie", 2) || !strncmp(m, "el", 2)) {
+            if (strstr(m + 2, "\\{")) {
+                int depth = 0;
+                const char *q = srcl->l[i];
+                for (;;) {
+                    for (; *q; q++) { if (q[0] == '\\' && q[1] == '{') depth++; if (q[0] == '\\' && q[1] == '}') depth--; }
+                    if (depth <= 0 || ++i >= srcl->n) break;
+                    q = srcl->l[i];
+                }
+            }
+            continue;
+        }
+        {
+            char *a = m;
+            while (*a && *a != ' ' && *a != '\t') a++;
+            if (*a) *a++ = 0;
+            ac = rargs(a, av, 12);
+        }
+        if (!strcmp(m, "SH") || !strcmp(m, "SS") || !strcmp(m, "Sh") || !strcmp(m, "Ss")) {
+            char t[512], h[512];
+            int k = 0, j;
+            rbreak(1);
+            rind = 0; rtag = 0; rsn = 0;
+            if (!ac && i + 1 < srcl->n) { strncpy(h, srcl->l[++i], sizeof h - 1); h[sizeof h - 1] = 0; }
+            else { h[0] = 0; for (j = 0; j < ac; j++) { if (j) strcat(h, " "); if (strlen(h) + strlen(av[j]) < sizeof h - 2) strcat(h, av[j]); } }
+            rtext(h, t, sizeof t, &k);
+            t[k] = 0;
+            olen = ocol = 0;
+            if (m[1] == 'S' || m[1] == 's') ospaces(2);
+            obyte(S_HEAD);
+            { char *c = t; while (*c) if (ISMARK(*c)) c++; else obyte(*c++); }
+            obyte(S_OFF);
+            emit();
+        } else if (!strcmp(m, "PP") || !strcmp(m, "P") || !strcmp(m, "LP") || !strcmp(m, "Pp")) {
+            rbreak(1); rtag = 0;
+        } else if (!strcmp(m, "TP") || !strcmp(m, "TQ")) {
+            rbreak(m[1] == 'P');
+            rtag = 1;
+            rtagw = ac && av[0][0] >= '0' && av[0][0] <= '9' ? atoi(av[0]) : 8;
+            if (rtagw < 4 || rtagw > 30) rtagw = 8;
+            rwantterm = 1;
+        } else if (!strcmp(m, "IP") || !strcmp(m, "HP")) {
+            rbreak(1);
+            rtag = 1;
+            rtagw = ac > 1 && av[1][0] >= '0' && av[1][0] <= '9' ? atoi(av[1]) : (ac ? 8 : 4);
+            if (rtagw < 3 || rtagw > 30) rtagw = 8;
+            if (ac && av[0][0]) { int k = 0; rtext(av[0], rterm, sizeof rterm, &k); rtermlen = k; }
+        } else if (!strcmp(m, "RS")) {
+            /* in by the tag's width (or N); .RE goes back by exactly that */
+            int by = ac && atoi(av[0]) > 0 ? atoi(av[0]) : (rtag ? rtagw : 4);
+            rflush();
+            if (rsn < (int)(sizeof rsstack / sizeof *rsstack)) rsstack[rsn++] = by;
+            rind += by; rtag = 0;
+            if (rind > 40) rind = 40;
+        } else if (!strcmp(m, "RE")) {
+            rflush();
+            if (rsn) rind -= rsstack[--rsn];
+            if (rind < 0 || !rsn) rind = rsn ? (rind < 0 ? 0 : rind) : 0;
+            rtag = 0;
+        } else if (!strcmp(m, "nf") || !strcmp(m, "EX")) {
+            rflush(); rnofill = 1;
+        } else if (!strcmp(m, "fi") || !strcmp(m, "EE")) {
+            rnofill = 0;
+        } else if (!strcmp(m, "br")) {
+            rflush();
+        } else if (!strcmp(m, "sp")) {
+            rflush(); addline(&out, "", 0);
+        } else if (!strcmp(m, "B") || !strcmp(m, "I") || !strcmp(m, "SB") || !strcmp(m, "SM")) {
+            if (!ac && i + 1 < srcl->n) { char nx[1024]; strncpy(nx, srcl->l[++i], sizeof nx - 1); nx[sizeof nx - 1] = 0; av[0] = nx; ac = 1;
+                rfonts(m[0] == 'S' ? (m[1] == 'B' ? "B" : "R") : m, av, ac); }
+            else rfonts(m[0] == 'S' ? (m[1] == 'B' ? "B" : "R") : m, av, ac);
+        } else if (!strcmp(m, "BR") || !strcmp(m, "RB") || !strcmp(m, "IR") || !strcmp(m, "RI") ||
+                   !strcmp(m, "BI") || !strcmp(m, "IB")) {
+            rfonts(m, av, ac);
+        } else if (!strcmp(m, "UR") || !strcmp(m, "MT")) {
+            if (ac) { char t[600]; strcpy(t, "\\fI"); strncat(t, av[0], 500); strcat(t, "\\fR"); radd(t); }
+        } else if (!strcmp(m, "SY")) {
+            rflush(); if (ac) { char t[600]; strcpy(t, "\\fB"); strncat(t, av[0], 500); strcat(t, "\\fR"); radd(t); }
+        } else if (!strcmp(m, "OP")) {
+            char t[600];
+            strcpy(t, "[\\fB");
+            if (ac) strncat(t, av[0], 250);
+            strcat(t, "\\fR");
+            if (ac > 1) { strcat(t, " \\fI"); strncat(t, av[1], 250); strcat(t, "\\fR"); }
+            strcat(t, "]");
+            radd(t);
+        } else if (!strcmp(m, "YS")) {
+            rbreak(1);
+        }
+        /* .TH .UE .ME .ad .na .hy .nh .ne .in .ti .ft .ps .ll .de .so ... : nothing to show */
+    }
+    rflush();
+}
+
 static Lines src;
-static int kind;                        /* 0 .man, 1 plain, 2 AmigaGuide */
+static int kind;                        /* 0 Markdown, 1 plain, 2 AmigaGuide, 3 roff */
 
 static void render(int width)
 {
@@ -540,6 +879,7 @@ static void render(int width)
     W = width > 20 ? width : 20;
     if (kind == 0) render_man(&src);
     else if (kind == 2) render_guide(&src);
+    else if (kind == 3) render_roff(&src);
     else render_plain(&src);
     while (out.n && !out.l[out.n - 1][0]) cu_free(out.l[--out.n]);
 }
@@ -549,8 +889,9 @@ static int load(const char *path)
     const char *dot = strrchr(path, '.');
     freelines(&src);
     if (!readlines(path, &src)) return 0;
-    if (dot && !stricmp(dot, ".man")) kind = 0;
+    if (dot && (!stricmp(dot, ".md") || !stricmp(dot, ".man") || !stricmp(dot, ".markdown"))) kind = 0;
     else if (src.n && !strnicmp(src.l[0], "@database", 9)) kind = 2;
+    else if (isroff(&src, dot)) kind = 3;
     else kind = 1;
     return 1;
 }
@@ -831,10 +1172,19 @@ static int summary(const char *path, char *name, int nsize, char *sum, int ssize
             strncpy(sum, dash + 3, ssize - 1); sum[ssize - 1] = 0;
             break;
         }
-        if (after && (dash = strstr(line, " - "))) {    /* NAME / SORT - Alphabetically ... */
+        if (after && line[0] != '.' && (dash = strstr(line, " - "))) {    /* NAME / SORT - Alphabetically ... */
             strncpy(sum, dash + 3, ssize - 1); sum[ssize - 1] = 0;
             break;
         }
+        if (after && line[0] != '.' && (dash = strstr(line, " \\- "))) {  /* roff: curl \- transfer a URL */
+            char t[200];
+            int q = 0;
+            rtext(dash + 4, t, sizeof t, &q);
+            t[q] = 0;
+            { int a = 0, b = 0; for (; t[a] && b < ssize - 1; a++) if (!ISMARK(t[a])) sum[b++] = t[a]; sum[b] = 0; }
+            break;
+        }
+        if (!strncmp(line, ".SH", 3) && strstr(line, "NAME")) { after = 1; continue; }
         { int j = indentof(line); if (j >= 0 && !strncmp(line + j, "NAME", 4) && !line[j + 4 + strspn(line + j + 4, " ")]) after = 1; }
     }
     cu_close(&in);
@@ -871,8 +1221,14 @@ static int kdrawer(const char *dir, void *u)
     if ((fib = AllocDosObject(DOS_FIB, NULL))) {
         if (Examine(l, fib)) while (ExNext(l, fib)) {
             char p[CU_PATH];
-            int n = strlen(fib->fib_FileName), e = strlen(kext);
-            if (fib->fib_DirEntryType > 0 || n <= e || stricmp(fib->fib_FileName + n - e, kext)) continue;
+            int n = strlen(fib->fib_FileName), ok = 0, x;
+            if (fib->fib_DirEntryType > 0) continue;
+            for (x = 0; kext ? x < 1 : manexts[x] != NULL; x++) {
+                const char *ext = kext ? kext : manexts[x];
+                int e = strlen(ext);
+                if (n > e && !stricmp(fib->fib_FileName + n - e, ext)) ok = 1;
+            }
+            if (!ok) continue;
             if (cu_join(p, dir, fib->fib_FileName)) kfile(p);
             if (cu_break()) break;
         }
@@ -903,7 +1259,7 @@ static void apropos(const char *word)
     for (pass = 0; pass < 2; pass++) {
         k.lang = pass ? "english" : lang;
         if (pass && !strcmp(lang, "english")) break;
-        kext = ".man"; k.mid = "";
+        kext = NULL; k.mid = "";
         eachdir("MAN:", klang, &k);
         kext = ".help"; k.mid = "Sys";
         eachdir("HELP:", klang, &k);

@@ -32,7 +32,7 @@ delete); a `-` means the bit is off, or the action not allowed.
   `%n` the name, `%N` the name and a soft link's target, `%s` the
   size, `%b` the blocks, `%A` the protection bits, `%F` the type, `%y`
   the date (2026-08-15 10:53:32), `%Y` the date in seconds since 1970,
-  `%C` the filenote, `%%` a %. `\\n` and `\\t` are a new line and a
+  `%C` the filenote, `%%` a %. `\n` and `\t` are a new line and a
   tab. A new line is added at the end.
 
 ## EXAMPLES
@@ -47,7 +47,7 @@ delete); a `-` means the bit is off, or the action not allowed.
 10 bad arguments, 20 stopped with Ctrl-C.
 
 ## NOTES
-Patterns may be written `#?` or `\*`; upper and lower case are the same.
+Patterns may be written `#?` or `*`; upper and lower case are the same.
 
 `stat ?` shows the usage line.
 

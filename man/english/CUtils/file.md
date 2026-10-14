@@ -25,7 +25,7 @@ What file knows:
 - **others** PDF, PostScript, ELF, MS-DOS and Windows programs.
 - **text** ASCII, ISO-8859-1 (Latin-1, the Amiga's own) or UTF-8, saying
   when it has CRLF line ends or escape sequences. A text file with the s
-  bit is an "AmigaDOS script"; one starting with `/\*` and with the s bit
+  bit is an "AmigaDOS script"; one starting with `/*` and with the s bit
   or a .rexx name is an "ARexx script".
 - **the rest** drawer, volume, soft link (and where it points), empty,
   and "data" for anything not known.
@@ -48,7 +48,7 @@ What file knows:
 Only the first 4 KB are read for most kinds, so file is quick even on
 big files.
 
-Patterns may be written `#?` or `\*`; upper and lower case are the same.
+Patterns may be written `#?` or `*`; upper and lower case are the same.
 
 `file ?` shows the usage line.
 

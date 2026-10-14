@@ -38,7 +38,7 @@ they use on the disk.
 ## NOTES
 Links, soft or hard, are never gone into, so a file is not counted twice.
 
-Patterns may be written `#?` or `\*`; upper and lower case are the same.
+Patterns may be written `#?` or `*`; upper and lower case are the same.
 
 Very deep trees are no problem: du does not use up the Shell's stack.
 

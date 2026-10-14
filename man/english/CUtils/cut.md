@@ -51,7 +51,7 @@ With no file, or `-`, cut reads its input, so it can sit in a pipe.
 ## NOTES
 Only one of **-f**, **-c** and **-b** may be used at a time.
 
-Files may be named with patterns (`#?` or `\*`).
+Files may be named with patterns (`#?` or `*`).
 
 `cut ?` shows the usage line.
 

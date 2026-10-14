@@ -40,7 +40,7 @@ It is quick: a few MB of lines sort in seconds.
   `-k3,3fb`. With several **-k** the first decides and ties go on to
   the next. A key with no letters takes the options given on their own.
 - **-t** SEP
-  fields are split at SEP (`\\t` is a tab). Without it, each field
+  fields are split at SEP (`\t` is a tab). Without it, each field
   starts at a run of blanks.
 - **-o** FILE
   write the result to FILE. It is written after everything is read, so
@@ -98,7 +98,7 @@ also a file that could not be read), 20 out of memory or stopped with
 Ctrl-C.
 
 ## NOTES
-Files may be named with patterns (`#?` or `\*`); all the matches are
+Files may be named with patterns (`#?` or `*`); all the matches are
 sorted together.
 
 A 0 byte ends a line's text.

@@ -62,7 +62,7 @@ that is on (h s p a) or allowed (r w e d); `-` shows it off.
 A soft link named on the command line is not changed (rc 5); with **-R**
 links inside drawers are skipped silently.
 
-Patterns may be written `#?` or `\*`; upper and lower case are the same.
+Patterns may be written `#?` or `*`; upper and lower case are the same.
 
 `chmod ?` shows the usage line.
 

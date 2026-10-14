@@ -34,7 +34,7 @@ Ctrl-C.
 
 ## NOTES
 A pattern only dates the files that are there; it never makes new ones.
-Patterns may be written `#?` or `\*`; upper and lower case are the same.
+Patterns may be written `#?` or `*`; upper and lower case are the same.
 
 Quote a date with a space in it.
 

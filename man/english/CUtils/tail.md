@@ -48,7 +48,7 @@ With **-f**, a file that gets shorter (started anew) is followed from
 its start again. **-f** follows only real files, not the input, and at
 most 32 of them.
 
-Patterns may be written `#?` or `\*`; upper and lower case are the same.
+Patterns may be written `#?` or `*`; upper and lower case are the same.
 
 `tail ?` shows the usage line.
 

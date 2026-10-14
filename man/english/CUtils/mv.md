@@ -54,7 +54,7 @@ is not moved between volumes either.
 Ctrl-C during a copy between volumes leaves the partial copy at TO and
 the original untouched, and says so.
 
-Patterns may be written `#?` or `\*`; upper and lower case are the same.
+Patterns may be written `#?` or `*`; upper and lower case are the same.
 
 `mv ?` shows the usage line.
 

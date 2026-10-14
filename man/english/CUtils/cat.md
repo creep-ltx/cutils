@@ -33,7 +33,7 @@ and safe for any kind of file.
 
 ## NOTES
 Patterns may be written the Amiga way (`#?.txt`) or the Unix way
-(`\*.txt`); upper and lower case are the same. The names a pattern stands
+(`*.txt`); upper and lower case are the same. The names a pattern stands
 for are taken in natural order (`file9` before `file10`).
 
 Line numbers count on across all the files given.

@@ -35,7 +35,7 @@ ends at once, however big the input.
 10 bad arguments, 20 stopped with Ctrl-C.
 
 ## NOTES
-Patterns may be written `#?` or `\*`; upper and lower case are the same.
+Patterns may be written `#?` or `*`; upper and lower case are the same.
 
 `head ?` shows the usage line.
 

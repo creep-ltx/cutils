@@ -26,7 +26,7 @@ PATTERN is a *regular expression*. The most useful parts:
     \.        a backslash makes a special character plain: a dot
 
 That is the *basic* form, as GNU grep's default: there `( ) | { } + ?`
-are plain characters and `\\( \\) \\| \\{ \\} \\+ \\?` are special. With
+are plain characters and `\( \) \| \{ \} \+ \?` are special. With
 **-E** (extended) it is the other way round, which is easier to write:
 `grep -E "cat|dog"`.
 
@@ -84,12 +84,12 @@ Without **-r** a drawer named as a file gives an error (rc 10). With
 **-r**, links are not gone into. Very deep drawers may need a bigger
 stack (`Stack 16000`).
 
-The patterns for *file names* are the Amiga's: `#?.txt` or `\*.txt`,
+The patterns for *file names* are the Amiga's: `#?.txt` or `*.txt`,
 upper and lower case the same. The PATTERN for the *text* is a regular
-expression, where `\*` means "repeat". Put a PATTERN with spaces, `;`,
+expression, where `*` means "repeat". Put a PATTERN with spaces, `;`,
 `>` or `|` in quotes.
 
-There are no back-references (`\\1`).
+There are no back-references (`\1`).
 
 `grep ?` shows the usage line.
 

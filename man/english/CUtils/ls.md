@@ -8,7 +8,7 @@ Shows what is in a drawer, in columns that fit the window, in natural
 order (`file9` before `file10`), upper and lower case alike, drawers and
 files mixed. With no path it lists the current drawer.
 
-A drawer lists its contents, a pattern (`#?` or `\*`) the names it
+A drawer lists its contents, a pattern (`#?` or `*`) the names it
 matches, a file just itself. Files and pattern matches come first as one
 list, then each drawer, under its name when there are several.
 
@@ -26,7 +26,7 @@ given, or a pattern names them.
 - **-a** also show `.info` icons and files with the h (hidden) bit.
 - **-A** the same as **-a**.
 - **-d** a drawer itself, not what is in it.
-- **-F** a mark after each name: `/` drawers, `\*` programs, `@` links.
+- **-F** a mark after each name: `/` drawers, `*` programs, `@` links.
 - **-h** sizes in K, M and G, easy to read (with **-l**).
 - **-l** long form: protection bits, size, date, time, name, and the
   filenote on a line below.

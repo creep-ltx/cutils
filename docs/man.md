@@ -1,5 +1,9 @@
 # man - manual pages on the Amiga (design, decided 2026-10-14)
 
+**Formats (the user, 2026-10-14 evening): our pages are real Markdown (`NAME.md`, CommonMark;
+the first beta's `.man` still read), and man also reads real Unix man pages (roff, the man(7)
+macros: `NAME.1` ... `NAME.9`), so ported tools' manuals work as they are.**
+
 Decided with the user before any code.
 
 ## Where the pages are
@@ -11,8 +15,9 @@ AmigaOS 3.2 already has the place: **`HELP:`** (= SYS:Locale/Help, more drawers 
 `Sys/Utilities`, `Sys/Tools`... for the programs. So:
 
 - **MAN: is an assign** (the user, 2026-10-14), and man only ever reads
-  **`MAN:<language>/<program>/<page>`**, e.g. `MAN:english/CUtils/ls.man`,
-  `MAN:english/CShell/csh.man`, `MAN:english/Sumi/sumi.man`. One drawer per program or
+  **`MAN:<language>/<program>/<page>`**, e.g. `MAN:english/CUtils/ls.md`,
+  `MAN:english/CShell/csh.md`, `MAN:english/Sumi/sumi.md`; a ported tool's roff page as
+  `MAN:english/curl/curl.1`. One drawer per program or
   package: tidy, easy to remove. Where MAN: points is the machine's choice:
   - with HELP: (3.2 sets it in S:Startup-Sequence; 3.0/3.1 most likely too, not checked):
     `Assign MAN: HELP:Man`, so the pages sit with the system's help;
@@ -32,13 +37,14 @@ AmigaOS 3.2 already has the place: **`HELP:`** (= SYS:Locale/Help, more drawers 
 - man itself needs only AmigaDOS 2.0 calls, so it can run on 2.04 and up (CUtils is built for
   3.2).
 
-Search order for `man NAME`: MAN:<lang>/*/NAME.man, then (where HELP: exists) HELP:<lang>/Sys/*/NAME.help,
+Search order for `man NAME`: MAN:<lang>/*/NAME.md (then .man, then .1 .8 .6 .5 .7 .3 .2 .4 .9 .n), then (where HELP: exists) HELP:<lang>/Sys/*/NAME.help,
 then english for both, then NAME.doc/.guide found near the program (which-style path search)
 or anywhere in HELP:.
 
-## The page format (.man)
+## The page format (.md)
 
-Plain text with a few marks, readable as it is (Type, MultiView). An example is the spec:
+Real Markdown (CommonMark), with a convention for man pages, readable as it is (Type,
+MultiView, Fude/Markdown, GitHub). An example is the spec:
 
     # ls - list drawers in columns, coloured by kind
 
@@ -78,10 +84,19 @@ The rules:
 - Inline: `**bold**`, `` `code` ``, `*underline*`. No other markup; a literal `*` or `` ` `` is
   written `\*`, `` \` ``.
 - Latin-1 or plain ASCII; lines up to 76 characters so Type shows them unwrapped.
-- `\*` is a plain star everywhere outside verbatim blocks, inside `` `code` `` too (man.c
-  takes the escape first); in a verbatim block a star is just `*`.
+- As in CommonMark: `\*` is a plain star outside code; inside `` `code` `` and in verbatim
+  blocks nothing is special (write `*` there). `__bold__` and `_em_` work too.
 - An option's argument goes after the term in capitals (`- **-k** POS1[,POS2] text`): man
   puts the first capitals word after the term into the term column, underlined.
+
+## Real Unix man pages (roff)
+
+man reads the man(7) macros: .TH .SH .SS .PP/.P/.LP .TP/.TQ .IP .HP .RS/.RE (a stack)
+.nf/.fi .EX/.EE .br .sp .B .I .BR .RB .IR .RI .BI .IB .SB .SM .UR/.MT .SY/.OP/.YS; the font
+escapes \fB \fI \fR \fP \f(CW \f[B]; \(xx and \[name] characters (Latin-1 or ASCII), \*(lq
+strings, \- \e \& \c \s; macro definitions (.de/.am/.ig to ..) and conditionals (.if/.ie/.el
+with \{ \}) are skipped. Not read: mdoc (.Dd/.Sh/.Nm, BSD pages) and tbl tables. Checked
+with GNU grep's, tar's and curl's pages (curl's 280 KB page: 37 s in the 14 MHz FS-UAE A1200).
 
 ## How it shows
 

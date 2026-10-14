@@ -33,7 +33,7 @@ A word is anything between spaces, tabs or line ends.
 10 bad arguments, 20 stopped with Ctrl-C.
 
 ## NOTES
-Patterns may be written `#?` or `\*`; upper and lower case are the same.
+Patterns may be written `#?` or `*`; upper and lower case are the same.
 
 `wc ?` shows the usage line.
 

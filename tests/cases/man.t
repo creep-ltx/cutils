@@ -1,4 +1,4 @@
-$ man -l tman.man
+$ man -l tman.md
 NAME
     tman - a test page for man, with every mark
 
@@ -25,18 +25,51 @@ EXAMPLES
 SEE ALSO
     man
 ? 0
+$ man -l troff.1
+NAME
+    troff - a test page in the Unix man format
+
+SYNOPSIS
+    troff [-ab] [FILE...]
+
+DESCRIPTION
+    This paragraph is written on two lines, joined and wrapped. Bold words and
+    underlined ones and inline bold, a dash - and quotes "like this".
+
+    A second paragraph.
+
+OPTIONS
+    -a      the first option.
+
+    --long, -l
+            a long term goes on its own line.
+
+    o   a bullet item
+
+        inner   an indented item
+
+  Examples
+      troff -a Work:
+        kept as it is
+
+SEE ALSO
+    man(1)
 $ MakeDir >NIL: {T}/Man {T}/Man/english {T}/Man/english/Test
-$ Copy tman.man {T}/Man/english/Test/ QUIET
+$ Copy tman.md troff.1 {T}/Man/english/Test/ QUIET
 $ Assign MAN: {T}/Man
 $ man -w tman
-{TV}/Man/english/Test/tman.man
+{TV}/Man/english/Test/tman.md
 $ man tman | head -n 2
 NAME
     tman - a test page for man, with every mark
 $ man -k "every mark"
 tman          - a test page for man, with every mark
+$ man -w troff
+{TV}/Man/english/Test/troff.1
+$ man -k "Unix man format"
+troff         - a test page in the Unix man format
 $ man -L svenska -w tman
-{TV}/Man/english/Test/tman.man
+{TV}/Man/english/Test/tman.md
 $ man -w sort
 AmigaOS3.2:Locale/Help/english/Sys/Commands/sort.help
 $ man sort | head -n 2

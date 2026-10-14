@@ -24,7 +24,7 @@ Several tests in a row must all be true. Use **-o** for "or", **!** for
 ## OPTIONS
 Tests:
 - **-name** PAT
-  the name matches the Amiga pattern PAT; `\*` works as `#?`. Upper and
+  the name matches the Amiga pattern PAT; `*` works as `#?`. Upper and
   lower case are always the same, as with Amiga names.
 - **-iname** PAT
   the same as **-name**.

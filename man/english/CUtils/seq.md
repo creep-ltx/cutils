@@ -18,8 +18,8 @@ a set number of times with `xargs`.
 ## OPTIONS
 - **-w** equal width, padded with leading zeros: 008 009 010.
 - **-s** SEP
-  put SEP between the numbers instead of a new line. `\\t` and `\\n` in
-  it are a tab and a new line, `\\\\` a backslash.
+  put SEP between the numbers instead of a new line. `\t` and `\n` in
+  it are a tab and a new line, `\\` a backslash.
 - **-f** FORMAT
   printf-like: one `%d`, `%f` or `%g` (also `%i`, `%F`, `%G`), with the
   flags `0`, `-`, `+`, a width and a .precision (`%03d`, `%.2f`,
@@ -40,8 +40,8 @@ a set number of times with `xargs`.
 ## NOTES
 The last number always ends with a new line, also with **-s**.
 
-Inside quotes the Shell also turns `\*n` into a new line, so
-`-s "\*n"` works as well.
+Inside quotes the Shell also turns `*n` into a new line, so
+`-s "*n"` works as well.
 
 `seq ?` shows the usage line.
 

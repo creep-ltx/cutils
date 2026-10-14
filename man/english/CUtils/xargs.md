@@ -12,7 +12,7 @@ and a command that should act on them:
     find Work: -name #?.bak | xargs rm
 
 With no command, Echo is used. Words are split at blanks and line ends;
-'...' and "..." keep blanks inside a word, and `\\` takes the next
+'...' and "..." keep blanks inside a word, and `\` takes the next
 character as it is (as GNU xargs).
 
 The commands run through the Shell, with their input from NIL: and
@@ -54,7 +54,7 @@ could not be started (xargs then stops); 20 stopped with Ctrl-C.
 ## NOTES
 Each word is passed as the Shell reads it: in quotes when it has a
 blank or a `;` `<` `>` `|` `"` in it (or is empty), with `"` written
-`\*"` and `\*` written `\*\*` inside. So names with spaces arrive whole.
+`*"` and `*` written `**` inside. So names with spaces arrive whole.
 
 xargs puts the words *after* the command. When they must go somewhere
 else, as the files for cp, which come before its TO, use **-I** (see

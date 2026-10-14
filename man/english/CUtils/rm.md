@@ -44,7 +44,7 @@ use), 20 stopped with Ctrl-C (checked between entries).
 There is no undo, and rm does not ask before it deletes: check a
 pattern first with `ls` (`ls Work:Projects/#?.o`).
 
-Patterns may be written `#?` or `\*`; upper and lower case are the same.
+Patterns may be written `#?` or `*`; upper and lower case are the same.
 
 `rm ?` shows the usage line.
 

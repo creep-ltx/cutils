@@ -51,8 +51,8 @@ lower case include the accented letters, so
 0 fine, 10 bad arguments (or a read error), 20 stopped with Ctrl-C.
 
 ## NOTES
-In the ROM Shell, `\*` inside quotes is the escape character: there
-write `[c\*\*5]`, or leave the quotes off.
+In the ROM Shell, `*` inside quotes is the escape character: there
+write `[c**5]`, or leave the quotes off.
 
 tr takes no file names; give it a file with `<`.
 

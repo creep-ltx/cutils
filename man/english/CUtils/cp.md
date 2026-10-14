@@ -50,7 +50,7 @@ A copy that breaks off (a full disk, Ctrl-C) is deleted, so no half
 files are left behind. Ctrl-C is checked between files and every 128 KB
 within a file.
 
-Patterns may be written `#?` or `\*`; upper and lower case are the same.
+Patterns may be written `#?` or `*`; upper and lower case are the same.
 
 `cp ?` shows the usage line.
 
