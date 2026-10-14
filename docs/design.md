@@ -35,6 +35,9 @@ this replaces them.
   leftmost-longest), RE_MULTILINE, \b \B \< \> \` \'; fixed there: a search gave up when
   nothing could start at one place (`$` alone, `\bfoo`), {n,m} over 100 is an error (was a
   plain {), and the {n,m} copy is on the heap (nested groups overflowed a 4 KB stack).
+  top 0.1b1 (2026-10-15, FS-UAE only): the classic top in the terminal (lib/tui.c); CPU% by
+  sampling SysBase->ThisTask from a vertical-blank interrupt server (asm, the ring in is_Data,
+  removed on every exit); its header comment and man page have the method's limits.
 - Added 2026-10-14, tested in FS-UAE only (not yet on the A1200): diff, which, date,
   basename, dirname, seq, file, stat, ln, chmod. `which` and `date` replace C:Which and
   C:Date (see the rule below); installing them means keeping the originals aside.
