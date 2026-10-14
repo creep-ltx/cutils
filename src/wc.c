@@ -15,6 +15,7 @@ static const char version[] = "$VER: wc 0.1b1 (14.10.2026)";
 
 static int o_l, o_w, o_c, o_L, nfiles, bare;
 static ULONG tl, tw, tc, tL;
+static unsigned char space[256];   /* what ends a word */
 
 static void report(ULONG l, ULONG w, ULONG c, ULONG L, const char *name)
 {
@@ -32,19 +33,28 @@ static int one(const char *path, void *u)
     CuIn in;
     ULONG l = 0, w = 0, c = 0, L = 0, col = 0;
     int inword = 0, k = 0;
-    LONG n, i;
+    LONG n;
     (void)u;
     if (!cu_open(&in, path)) return 0;
     while ((n = Read(in.fh, in.buf, in.size)) > 0) {
-        unsigned char *s = (unsigned char *)in.buf;
+        unsigned char *p = (unsigned char *)in.buf, *e = p + n;
         c += n;
-        for (i = 0; i < n; i++) {
-            int ch = s[i];
-            if (ch == '\n') { l++; if (col > L) L = col; col = 0; }
-            else if (ch == '\t') col = (col | 7) + 1;
-            else col++;
-            if (ch == ' ' || ch == '\n' || ch == '\t' || ch == '\r' || ch == '\f' || ch == '\v' || ch == 0xa0) inword = 0;
-            else if (!inword) { inword = 1; w++; }
+        if (o_L) {
+            for (; p < e; p++) {
+                int ch = *p;
+                if (ch == '\n') { l++; if (col > L) L = col; col = 0; }
+                else if (ch == '\t') col = (col | 7) + 1;
+                else col++;
+                if (space[ch]) inword = 0;
+                else if (!inword) { inword = 1; w++; }
+            }
+        } else if (o_w) {
+            for (; p < e; p++) {
+                if (space[*p]) { inword = 0; if (*p == '\n') l++; }
+                else if (!inword) { inword = 1; w++; }
+            }
+        } else {
+            for (; (p = memchr(p, '\n', e - p)); p++) l++;
         }
         if (!(++k & 15) && cu_break()) break;
     }
@@ -71,6 +81,7 @@ int main(void)
         default: return cu_rc;
     }
     if (!o_l && !o_w && !o_c && !o_L) o_l = o_w = o_c = 1;
+    space[' '] = space['\n'] = space['\t'] = space['\r'] = space['\f'] = space['\v'] = space[0xa0] = 1;
     bare = o_l + o_w + o_c + o_L == 1 && cu_argc <= 1;
     if (!cu_argc) one(NULL, NULL);
     for (i = 0; i < cu_argc && cu_rc < 20; i++) cu_each(cu_argv[i], one, NULL);

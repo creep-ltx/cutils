@@ -24,6 +24,9 @@ typedef struct {
     unsigned char cls[RMAXC][32];
     int ncls;
     void *mark, *ta, *tb;               /* the machine's lists, made once by re_comp */
+    int nslots;                         /* the capture slots in use (copied per thread) */
+    int hasfirst;                       /* first: the bytes a match can start with */
+    unsigned char first[32];
 } RC;
 
 static int lower(int c) { c &= 0xff; return (c >= 'A' && c <= 'Z') || (c >= 0xc0 && c <= 0xde && c != 0xd7) ? c + 32 : c; }
@@ -253,8 +256,33 @@ static void add(VM *v, TList *l, int pc, int *caps, int sp)
     case R_EOL: if (sp == v->len) add(v, l, pc + 1, caps, sp); return;
     }
     l->t[l->n].pc = pc;
-    memcpy(l->t[l->n].caps, caps, sizeof l->t[0].caps);
+    memcpy(l->t[l->n].caps, caps, v->r->nslots * sizeof(int));
     l->n++;
+}
+
+/* The bytes a match can start with, into r->first: 0 when any can (., an
+ * empty match), then there is no skipping ahead. */
+static int firstset(RC *r, int pc, unsigned char *seen)
+{
+    RInst *in;
+    int c;
+    if (seen[pc]) return 1;
+    seen[pc] = 1;
+    in = &r->code[pc];
+    switch (in->op) {
+    case R_CHAR:
+        setbit(r->first, in->c);
+        c = in->c;
+        if (r->nocase && ((c >= 'a' && c <= 'z') || (c >= 0xe0 && c <= 0xfe && c != 0xf7))) setbit(r->first, c - 32);
+        return 1;
+    case R_CLASS:
+        for (c = 0; c < 32; c++) r->first[c] |= r->cls[in->x][c];
+        return 1;
+    case R_BOL: case R_SAVE: return firstset(r, pc + 1, seen);
+    case R_JMP: return firstset(r, pc + in->x, seen);
+    case R_SPLIT: return firstset(r, pc + in->x, seen) && firstset(r, pc + in->y, seen);
+    }
+    return 0;                                /* . $ or the end: anything */
 }
 
 /* Compiled once (grep runs it on every line): NULL when the pattern is bad. */
@@ -274,6 +302,9 @@ void *re_comp(const char *re, int nocase)
     r->ta = cu_alloc(r->n * sizeof(Thr));
     r->tb = cu_alloc(r->n * sizeof(Thr));
     if (!r->mark || !r->ta || !r->tb) { re_free(r); return NULL; }
+    r->nslots = 2 * ((r->ngroup < RE_GROUPS ? r->ngroup : RE_GROUPS - 1) + 1);
+    memset(r->mark, 0, r->n * sizeof(int));
+    r->hasfirst = firstset(r, 0, r->mark);
     return r;
 }
 
@@ -299,6 +330,10 @@ int re_exec(void *prog, const char *s, int len, int from, int *caps)
     for (k = 0; k < RSLOTS; k++) start[k] = -1;
     a.n = b.n = 0;
     for (sp = from; ; sp++) {
+        if (!matched && !cl->n && r->hasfirst) {   /* nothing going on: on to a byte that can start one */
+            while (sp < len && !((r->first[(unsigned char)s[sp] >> 3] >> (s[sp] & 7)) & 1)) sp++;
+            if (sp >= len) break;
+        }
         if (!matched) add(&v, cl, 0, start, sp);   /* a new start here, behind the older ones */
         if (!cl->n) break;
         v.gen++;
