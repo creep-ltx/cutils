@@ -1,0 +1,11 @@
+--target=m68k-unknown-linux-gnu
+-I/home/creep/opt/amiga/m68k-amigaos/ndk-include
+-I/home/creep/opt/amiga/m68k-amigaos/sys-include
+-I/home/creep/opt/amiga/m68k-amigaos/include
+-I/home/creep/opt/amiga/m68k-amigaos/libnix/include
+-D__amigaos__
+-D__stdargs=
+-D__regargs=
+-D__saveds=
+-D__chip=
+-Ilib
