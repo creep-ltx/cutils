@@ -1,0 +1,6 @@
+the cat sat
+concatenate
+Cat food
+a (paren) line
+x+y=z
+foo bar foo

@@ -3,6 +3,7 @@
 #include "cu.h"
 
 int cu_rc;
+int cu_silent;
 BPTR cu_out;
 int cu_argc;
 char **cu_argv;
@@ -83,6 +84,8 @@ static void errput(const char *s)
 
 void cu_err(int rc, const char *what, const char *why)
 {
+    if (cu_rc < rc) cu_rc = rc;
+    if (cu_silent) return;
     cu_flush();
     errput(cu_name);
     if (what) { errput(": "); errput(*what ? what : "\"\""); }

@@ -23,6 +23,7 @@
 extern const char *cu_name;      /* the command's name, for messages */
 extern int cu_rc;                /* the worst so far: 0, 5, 10, 20 */
 extern BPTR cu_out;              /* Output() */
+extern int cu_silent;            /* 1: cu_err says nothing (grep -s), the rc still counts */
 
 /* ---- memory (AllocVec, any memory) ---- */
 void *cu_alloc(ULONG n);
@@ -90,7 +91,7 @@ void cu_close(CuIn *in);
 /* ---- regex.c ---- */
 #define RE_GROUPS 10
 void *re_comp(const char *re, int nocase);
-int re_exec(void *prog, const char *s, int len, int *caps);
+int re_exec(void *prog, const char *s, int len, int from, int *caps);   /* from: where the search starts; ^ only at s[0] */
 void re_free(void *prog);
 
 #endif

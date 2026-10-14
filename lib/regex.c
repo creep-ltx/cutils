@@ -284,8 +284,9 @@ void re_free(void *prog)
     cu_free(r->mark); cu_free(r->ta); cu_free(r->tb); cu_free(r);
 }
 
-/* s[0..len): 1 a match (caps[0], caps[1] its start and end), 0 none, -1 no memory */
-int re_exec(void *prog, const char *s, int len, int *caps)
+/* s[from..len), with ^ only at s[0]: 1 a match (caps[0], caps[1] its start
+ * and end), 0 none, -1 no memory */
+int re_exec(void *prog, const char *s, int len, int from, int *caps)
 {
     RC *r = prog;
     VM v;
@@ -297,7 +298,7 @@ int re_exec(void *prog, const char *s, int len, int *caps)
     for (k = 0; k < r->n; k++) v.mark[k] = -1;
     for (k = 0; k < RSLOTS; k++) start[k] = -1;
     a.n = b.n = 0;
-    for (sp = 0; ; sp++) {
+    for (sp = from; ; sp++) {
         if (!matched) add(&v, cl, 0, start, sp);   /* a new start here, behind the older ones */
         if (!cl->n) break;
         v.gen++;
