@@ -93,4 +93,49 @@ void *re_comp(const char *re, int nocase);
 int re_exec(void *prog, const char *s, int len, int *caps);
 void re_free(void *prog);
 
+/* ---- cu_tree.c: files and trees, for cp mv rm (links never followed) ----
+ * cu_isroot(): a volume root ("dh0:", "dh0:/", ""), never deleted or moved.
+ * cu_lstat(): Examine() a path without following a soft link: a link
+ * gives fib_DirEntryType ST_SOFTLINK and only its name. 0: IoErr() says why.
+ * cu_scan(): a whole drawer read into a list first (never change a drawer
+ * under a live ExNext); 0 and a message (rc 10) on a failure, *ok = 0.
+ * cu_copyfile(): the bytes in 128 KB blocks, then protection, date and
+ * filenote (Copy CLONE); a failed or broken copy deletes the partial
+ * target. 1 fine, else 0, said (rc 10, or 20 for Ctrl-C).
+ * cu_clonedir(): CreateDir(dst) with src's protection and filenote;
+ * 0: IoErr() says why, nothing said.
+ * cu_copytree(): src to dst with a work list on the heap (no recursion),
+ * a drawer before its contents. dir() is called for each drawer pair (1:
+ * go into it, 0: skip it, -1: stop all), file() for each other entry,
+ * links included (1 fine, 0 failed, -1 stop all). Returns 1 when all was
+ * fine.
+ * cu_deltree(): the tree under top, deepest first: every drawer scanned
+ * whole, then del() for its files and links, then (in reverse order) for
+ * the drawers. Returns 1 when every del() did.
+ * cu_skip()/cu_skipped(): names put aside (rc 5), listed at the end
+ * under "title:" on the error stream. */
+#define CU_LINK(t) ((t) == ST_SOFTLINK || (t) == ST_LINKDIR)
+#define CU_ISDIR(t) ((t) > 0 && !CU_LINK(t))
+typedef struct CuEnt {
+    struct CuEnt *next;
+    LONG type, prot;
+    struct DateStamp date;
+    char *note;                  /* NULL: none */
+    char name[1];
+} CuEnt;
+int cu_isroot(const char *path);
+int cu_lstat(const char *path, struct FileInfoBlock *fib);
+CuEnt *cu_scan(const char *dir, int *ok);
+void cu_freeents(CuEnt *e);
+int cu_copyfile(const char *src, const char *dst, LONG prot, const struct DateStamp *ds, const char *note);
+int cu_clonedir(const char *src, const char *dst);
+int cu_copytree(const char *src, const char *dst,
+                int (*dir)(const char *s, const char *d, void *u),
+                int (*file)(const char *s, const char *d, CuEnt *e, void *u), void *u);
+int cu_deltree(const char *top, int (*del)(const char *path, LONG type, void *u), void *u);
+void cu_skip(const char *path);
+void cu_skipped(const char *title);
+void cu_trimslash(char *path);   /* "dir/" -> "dir" ("RAM:/" stays) */
+
+
 #endif

@@ -6,7 +6,12 @@ know, one small pure program each, made for `C:` and for csh pipes.
 | Command | What it does | State |
 |---|---|---|
 | cat  | files one after another; -n -b -s -E -v | 0.1b1, tested in FS-UAE |
+| cp   | copy, never over a file unless -f, metadata kept like Copy CLONE; -f -r | 0.1b1, tested in FS-UAE |
 | head | the first lines or bytes; -n -N -c -q -v | 0.1b1, tested in FS-UAE |
+| mkdir | make drawers; -p | 0.1b1, tested in FS-UAE |
+| mv   | move: Rename() on one volume, copy+delete across, trees all or nothing; -f -b | 0.1b1, tested in FS-UAE |
+| rm   | delete: drawers only with -r, roots never, links as links; -r -f -v | 0.1b1, tested in FS-UAE |
+| touch | date a file now (or -d / -r), make it when missing; -c -d -r | 0.1b1, tested in FS-UAE |
 | wc   | lines, words, bytes; -l -w -c -L | 0.1b1, tested in FS-UAE |
 
 Every command answers `?` with its usage; its source's first comment is its
