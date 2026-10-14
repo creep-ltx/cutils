@@ -42,7 +42,7 @@ static int lc(int c)
 }
 
 /* natural, case blind: "file9" before "file10" (as ls sorts) */
-static int natcmp(const char *a, const char *b)
+int cu_natcmp(const char *a, const char *b)
 {
     while (*a && *b) {
         if (*a >= '0' && *a <= '9' && *b >= '0' && *b <= '9') {
@@ -63,7 +63,7 @@ static int natcmp(const char *a, const char *b)
     return lc(*a) - lc(*b);
 }
 
-static int cmpname(const void *a, const void *b) { return natcmp(*(char **)a, *(char **)b); }
+static int cmpname(const void *a, const void *b) { return cu_natcmp(*(char **)a, *(char **)b); }
 
 int cu_each(const char *arg, int (*fn)(const char *path, void *u), void *u)
 {

@@ -6,7 +6,7 @@
 #     expected output lines
 #     ? rc                     (optional: the return code it must give)
 # blank lines inside the expected output are kept; a block ends at the next $.
-# The commands are in RAM:cu/ (on the path for the run), tests/files/* in RAM:cut/.
+# The commands are in RAM:cu/ (first on the path for the run, before C:), tests/files/* in RAM:cut/.
 # S=x: RAM:cux and RAM:cutx instead, so several sessions can test at once.
 # The emulator dead (a crash): tests/uae-restart.sh.
 cd "$(dirname "$0")"; W=${W:-./w}; S=${S:-}; export S
@@ -34,7 +34,7 @@ fail = 0
 for b in blocks:
     while b['out'] and b['out'][-1] == '': b['out'].pop()
     want = '\n'.join(b['out'])
-    script = f'FailAt 21\nCD RAM:cut{S}\nPath RAM:cu{S} ADD\n' + b['cmd'] + f'\nSetEnv curc{S} $RC\n'
+    script = f'FailAt 21\nCD RAM:cut{S}\nPath RAM:cu{S} HEAD\n' + b['cmd'] + f'\nSetEnv curc{S} $RC\n'
     open(f'/tmp/cutest{S}.script', 'w').write(script)
     subprocess.run([w, 'put', f'/tmp/cutest{S}.script', f'RAM:cutest{S}.script'], capture_output=True)
     r = subprocess.run([w, 'run', '--max-time', '60', f'Execute RAM:cutest{S}.script'], capture_output=True, text=True, errors='replace')
