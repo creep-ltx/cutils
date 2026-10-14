@@ -224,4 +224,18 @@ void cu_skipped(const char *title);
 void cu_trimslash(char *path);   /* "dir/" -> "dir" ("RAM:/" stays) */
 
 
+/* ---- cu_tasks.c: every task, copied out under Disable() (ps, kill) ---- */
+typedef struct {
+    APTR addr;
+    int process;                 /* a process (else a plain exec task) */
+    int pri, state;              /* state: 0 running, 1 ready, 2 waiting */
+    ULONG stack, sigwait;        /* stack size; the signals it waits for */
+    LONG free;                   /* stack headroom in bytes, -1 unknown */
+    LONG cli;                    /* CLI number, 0 when none */
+    char name[48];
+    char cmd[64];                /* the CLI's command in flight, "" if none */
+} CuTask;
+int cu_tasks(CuTask *v, int max);          /* how many were filled in */
+int cu_signal(APTR task, ULONG sigs);      /* 0: that task is gone */
+
 #endif
