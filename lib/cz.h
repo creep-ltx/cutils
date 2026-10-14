@@ -8,7 +8,14 @@
  *           cz_close(z);       (the BPTR stays open: the caller closes it)
  * Writing:  CzOut *z = cz_create(fh, CZ_GZIP, 6);
  *           cz_write(z, buf, n) ...; cz_finish(z);   (writes the trailer, frees z)
- * Trouble: the functions return NULL / -1 and cz_error() says why in words. */
+ * Trouble: the functions return NULL / -1 and cz_error() says why in words.
+ *
+ * Which kinds a program carries: every kind, unless it names its own at
+ * file level (then the others are not linked at all):
+ *     CZ_READERS(&cz_gzip);                 (the kinds cz_open() knows)
+ *     CZ_PACKERS(&cz_gzip_pack);            (the kinds cz_create() makes)
+ * cz_open() of a kind the program does not carry: NULL, *found set, and
+ * cz_error() "that kind is not in this build". */
 #ifndef CZ_H
 #define CZ_H
 
@@ -35,5 +42,21 @@ const char *cz_error(void);            /* the last trouble, in words */
 int cz_kind_of_name(const char *name); /* by the ending: .gz .tgz .bz2 .tbz .tbz2 .xz .txz .zst .tzst; CZ_NONE */
 const char *cz_kind_name(int kind);    /* "gzip", "bzip2", "xz", "zstd", "none" */
 int cz_can_write(int kind);            /* this build packs it */
+
+/* ---- added with the real codecs (2026-10-14) ---- */
+
+typedef struct CzKind CzKind;
+typedef struct CzPack CzPack;
+extern const CzKind cz_gzip, cz_bzip2, cz_xz, cz_zstd;
+extern const CzPack cz_gzip_pack, cz_bzip2_pack;
+#define CZ_READERS(...) const CzKind *const cz_kinds[] = { __VA_ARGS__, NULL }
+#define CZ_PACKERS(...) const CzPack *const cz_packs[] = { __VA_ARGS__, NULL }
+
+/* gzip only, before the first cz_write(): the name (FilePart, may be NULL)
+ * and the date (Unix seconds, 0 none) put in the header, as GNU gzip does */
+void cz_set_name(CzOut *z, const char *name, ULONG mtime);
+/* after cz_read() gave 0: 1 when bytes after the last stream were ignored
+ * (GNU: "decompression OK, trailing garbage ignored") */
+int cz_trailing(CzIn *z);
 
 #endif
