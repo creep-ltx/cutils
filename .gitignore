@@ -1,3 +1,8 @@
 build/
 .claude/
 tests/diff-linux/ldiff
+tests/cz-pc/w/
+tests/cz-pc/pc
+tests/cz-pc/pc-asan
+tests/cz-pc/am
+tests/cz-pc/czt-am.o

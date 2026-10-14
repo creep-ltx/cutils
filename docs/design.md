@@ -95,6 +95,14 @@ this replaces them.
   `lib/cu_date.c` (the calendar by hand, touch's date parser, ISO dates, the
   after-2046 DateStamp fix: touch, date, stat, diff), `lib/cu_prot.c` (protection
   bits as "----rwed": stat, chmod).
+- `lib/cz*.c` - the squeezers (cz.h; docs/tar.md has the decisions): cz.c the kind from
+  the first bytes and the input buffer, one file per kind (cz_gz/cz_bz/cz_xz/cz_zst read,
+  cz_gzw/cz_bzw write), cz_w.c creating; cz_int.h says how a command names its kinds
+  (CZ_READERS/CZ_PACKERS) so the others are not linked; a program naming none (tar) gets
+  all from cz_all.c/cz_allw.c. `lib/czc.c` (+ czc_pack.c) is the command shared by gzip,
+  gunzip, bzip2, bunzip2, unxz, unzstd. The libraries are in third_party/ (its README).
+  **Before trusting a change there**: `tests/cz-pc/run.sh` (the same code for Linux and
+  for the 68020 under vamos, compared on ~860 runs; bebbo's gcc and structs by value).
 - `src/NAME.c` - one command each, `$VER: NAME 0.1bN (date)`.
 
 ## Small mismatches to tidy (found writing the man pages, 2026-10-14)
