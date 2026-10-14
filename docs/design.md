@@ -94,7 +94,9 @@ this replaces them.
   a stable bottom-up merge sort),
   `lib/cu_date.c` (the calendar by hand, touch's date parser, ISO dates, the
   after-2046 DateStamp fix: touch, date, stat, diff), `lib/cu_prot.c` (protection
-  bits as "----rwed": stat, chmod).
+  bits as "----rwed": stat, chmod), `lib/cu_long.c` (paths longer than dos.library's 255
+  bytes, locked part by part: cu_walk, tar), `lib/cz.c` (the squeezing streams: tar;
+  docs/tar.md).
 - `src/NAME.c` - one command each, `$VER: NAME 0.1bN (date)`.
 
 ## Small mismatches to tidy (found writing the man pages, 2026-10-14)

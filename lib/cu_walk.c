@@ -40,7 +40,7 @@ static void readdrawer(Frame *f)
     struct ExAllData *buf = NULL, *ed;
     LONG more = 0, ncap = 0, nlen = 0;
     int cap = 0;
-    BPTR lock = Lock((STRPTR)f->path, SHARED_LOCK);
+    BPTR lock = cu_lockdir(f->path);         /* also deeper than 255 bytes */
     if (!lock) { cu_fault(5, f->path); return; }
     if (!(eac = AllocDosObject(DOS_EXALLCONTROL, NULL)) || !(buf = cu_alloc(4096))) {
         cu_err(20, NULL, "out of memory");

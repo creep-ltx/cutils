@@ -224,6 +224,16 @@ void cu_skipped(const char *title);
 void cu_trimslash(char *path);   /* "dir/" -> "dir" ("RAM:/" stays) */
 
 
+/* ---- cu_long.c: paths longer than dos.library takes (255 bytes) ----
+ * cu_lockdir(): a shared lock on a path of any length (short ones: plain
+ * Lock), locked part by part; 0 and IoErr() when it fails.
+ * cu_enter(): for a long path, CurrentDir() moved to its drawer and its
+ * last part returned (a short path comes back as it is); do the one dos
+ * call with that, then cu_leave() moves back (IoErr() kept). Not nested. */
+BPTR cu_lockdir(const char *path);
+const char *cu_enter(const char *path);
+void cu_leave(void);
+
 /* ---- cu_tasks.c: every task, copied out under Disable() (ps, kill) ---- */
 typedef struct {
     APTR addr;
