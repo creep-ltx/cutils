@@ -90,3 +90,16 @@ this replaces them.
   after-2046 DateStamp fix: touch, date, stat, diff), `lib/cu_prot.c` (protection
   bits as "----rwed": stat, chmod).
 - `src/NAME.c` - one command each, `$VER: NAME 0.1bN (date)`.
+
+## Small mismatches to tidy (found writing the man pages, 2026-10-14)
+
+The pages in man/english/CUtils describe what the code does; these header comments or
+usage strings say less or differ (no behaviour is wrong): grep -r recurses on the stack
+(stops with "too deep", not "any depth"), a drawer without -r gives rc 10, only the last -e
+counts, -R undocumented; find's usage leaves out -iname -mmin -print0 -true -false -depth
+-not/-and/-or and `-exec {} +`, -size takes b and G too; cut's usage lacks
+--output-delimiter, -n ignored; chmod X undocumented, a named soft link gives rc 5; date
+never checks Ctrl-C (header says 20), VER= works like TO=; wc -m, xargs -x -l -i, cp/rm -R
+not in usage strings; sort's Amiga form gives rc 10 for an unreadable file (header 5); du's
+total uses a tab; stat's labels indent 3. Fixed: tee named the wrong file on a write error
+(0.1b2), tail +N (0.1b2).

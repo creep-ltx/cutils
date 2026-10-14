@@ -18,3 +18,14 @@ Beta
 gamma delta
 ? 10
 $ Delete RAM:tee1 RAM:tee2 QUIET
+$ type b.txt | tee RAM:nodir/x RAM:tee3
+tee: RAM:nodir/x: object not found
+alpha
+Beta
+gamma delta
+? 10
+$ cat RAM:tee3
+alpha
+Beta
+gamma delta
+$ Delete RAM:tee3 QUIET

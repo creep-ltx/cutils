@@ -1,0 +1,56 @@
+# file - tell what kind of file it is, from what is inside
+
+## SYNOPSIS
+    file [-b] file | pattern ...
+
+## DESCRIPTION
+Looks inside each file and says what it is, one line each:
+`name: what`. It does not trust the name: a picture called `readme` is
+still found to be a picture. Useful when you find a file without an
+icon, or to check what a download really is.
+
+What file knows:
+- **AmigaOS** programs (with "pure" when the p bit is set; a library,
+  device or resource when it says so), object files and link libraries,
+  Workbench icons (.info: disk, drawer, tool, project ..., with OS 3.5
+  colour images), IFF files (ILBM pictures with width, height and
+  colours, HAM and EHB; 8SVX sounds with their rate; ANIM, SMUS, FTXT,
+  AIFF, PREF and others by name), AmigaGuide, disk images (ADF by size
+  and bootblock: OFS, FFS, international, cache; hard disk images with an
+  RDB), PowerPacker and XPK data, DMS.
+- **music** ProTracker-style MODs (with the channels and title),
+  OctaMED, XM, Scream Tracker 3, Impulse Tracker, MIDI, WAV, MP3.
+- **archives** LhA, LZX, Zip, gzip, bzip2, xz, 7-Zip, tar.
+- **pictures** PNG, GIF, JPEG and BMP, with their size.
+- **others** PDF, PostScript, ELF, MS-DOS and Windows programs.
+- **text** ASCII, ISO-8859-1 (Latin-1, the Amiga's own) or UTF-8, saying
+  when it has CRLF line ends or escape sequences. A text file with the s
+  bit is an "AmigaDOS script"; one starting with `/\*` and with the s bit
+  or a .rexx name is an "ARexx script".
+- **the rest** drawer, volume, soft link (and where it points), empty,
+  and "data" for anything not known.
+
+## OPTIONS
+- **-b** brief: only what it is, without `name: ` in front.
+
+## EXAMPLES
+    file Work:Downloads/#?
+    file SYS:Libs/#?.library
+    file -b DF0:mod.intro
+    file S:Startup-Sequence S:User-Startup
+    file Work:#? | grep -i ilbm
+
+## RETURN CODES
+0 fine, 5 a file could not be read or a pattern matched nothing,
+10 bad arguments (no file named), 20 stopped with Ctrl-C.
+
+## NOTES
+Only the first 4 KB are read for most kinds, so file is quick even on
+big files.
+
+Patterns may be written `#?` or `\*`; upper and lower case are the same.
+
+`file ?` shows the usage line.
+
+## SEE ALSO
+`stat`, `ls`, `find`, `cat`, List, Type

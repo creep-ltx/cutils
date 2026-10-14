@@ -11,13 +11,14 @@
 #include "cu.h"
 
 const char *cu_name = "tee";
-static const char version[] = "$VER: tee 0.1b1 (14.10.2026)";
+static const char version[] = "$VER: tee 0.1b2 (14.10.2026)";
 
 #define MAXF 32
 
 int main(void)
 {
     BPTR fh[MAXF], in;
+    char *fname[MAXF];
     char *buf, *v;
     int c, i, n = 0, append = 0;
     LONG k;
@@ -33,7 +34,7 @@ int main(void)
         BPTR f = Open(cu_argv[i], append ? MODE_READWRITE : MODE_NEWFILE);
         if (f && append) Seek(f, 0, OFFSET_END);
         if (!f) cu_fault(10, cu_argv[i]);
-        else fh[n++] = f;
+        else { fname[n] = cu_argv[i]; fh[n++] = f; }
     }
     if (!(buf = cu_alloc(8192))) { cu_err(20, NULL, "out of memory"); return cu_rc; }
     in = Input();
@@ -41,7 +42,7 @@ int main(void)
     while ((k = Read(in, buf, 8192)) > 0) {
         Write(cu_out, buf, k);
         for (i = 0; i < n; i++)
-            if (fh[i] && Write(fh[i], buf, k) != k) { cu_fault(10, cu_argv[i]); Close(fh[i]); fh[i] = 0; }
+            if (fh[i] && Write(fh[i], buf, k) != k) { cu_fault(10, fname[i]); Close(fh[i]); fh[i] = 0; }
         if (cu_break()) break;
     }
     for (i = 0; i < n; i++) if (fh[i]) Close(fh[i]);

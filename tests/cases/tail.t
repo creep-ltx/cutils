@@ -49,3 +49,6 @@ two
 five
 $ tail -2 long.txt | wc -c
 20007
+$ tail +99 n100.txt
+line 99
+line 100

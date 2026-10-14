@@ -1,0 +1,41 @@
+# wc - count the lines, words and bytes in files
+
+## SYNOPSIS
+    wc [-lwcL] [file | pattern | - ...]
+
+## DESCRIPTION
+Counts what is in each file: lines, words and bytes, then the name.
+When several files are counted, a total comes last. With no file, or
+`-`, wc counts its input.
+
+With only one count asked for, and one file or the input, wc prints the
+number alone, handy in scripts: `List | wc -l`.
+
+A word is anything between spaces, tabs or line ends.
+
+## OPTIONS
+- **-l** the number of lines.
+- **-w** the number of words.
+- **-c** the number of bytes. **-m** is the same (one byte is one
+  character in Latin-1).
+- **-L** the length of the longest line (tabs count to the next column
+  of 8).
+
+## EXAMPLES
+    wc S:Startup-Sequence
+    wc -l Work:Projects/#?.c
+    ls -1 RAM: | wc -l
+    grep -i error RAM:debug.log | wc -l
+    wc -L Work:Docs/readme.txt
+
+## RETURN CODES
+0 fine, 5 a file could not be read or a pattern matched nothing,
+10 bad arguments, 20 stopped with Ctrl-C.
+
+## NOTES
+Patterns may be written `#?` or `\*`; upper and lower case are the same.
+
+`wc ?` shows the usage line.
+
+## SEE ALSO
+`cat`, `grep`, `head`, `tail`, `uniq`

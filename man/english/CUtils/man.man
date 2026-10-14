@@ -1,0 +1,68 @@
+# man - show the manual page of a command or program
+
+## SYNOPSIS
+    man [-a] [-w] [-L LANG] NAME ...
+    man -k WORD
+    man -l FILE
+
+## DESCRIPTION
+Shows the manual page for NAME. In a window it opens the page in its own
+viewer: scroll, search, and **q** to quit. When the output goes to a file
+or a pipe the page comes out as plain text, so `man ls | grep -i sort`
+works.
+
+man finds pages in this order, and the first one wins:
+
+    MAN:LANG/PROGRAM/NAME.man         pages installed for programs
+    HELP:LANG/Sys/DRAWER/NAME.help    the system's own pages (3.2)
+    the same two in english
+    NAME.guide or NAME.doc            next to the program, or in HELP:
+
+LANG is the language chosen in Locale prefs (english without
+locale.library). MAN: is an assign: on AmigaOS 3.x it usually points to
+HELP:Man, on older systems to SYS:Man. Add your own pages with
+`Assign MAN: Work:MyPages ADD` and put them in
+`Work:MyPages/english/Mine/NAME.man`.
+
+Pages may be .man files (marked-up text, see `docs/man.md`), plain text
+in the manual's own form (NAME, FORMAT, TEMPLATE...), or AmigaGuide.
+
+## OPTIONS
+- **-a** every page found for NAME, one after another, not only the
+  first.
+- **-w** where the page is (its path), not the page.
+- **-L** LANG look in another language's pages first, e.g. svenska.
+- **-k** WORD list the pages whose name or one-line summary has WORD
+  in it (as Unix apropos).
+- **-l** FILE show FILE as a page.
+
+## THE VIEWER
+- **Down j Return** one line on.
+- **Up k** one line back.
+- **Space PgDn f** a page on; **b PgUp** a page back.
+- **d u** half a page on or back.
+- **g Home** the start; **G End** the end.
+- **/** search forward, **?** backward; every match is marked.
+- **n N** the next match, the one before.
+- **h Help** the keys; **q Esc** quit.
+
+The mouse wheel scrolls in CTerm. When the window changes size, the
+text is wrapped again to the new width.
+
+## ENVIRONMENT
+- **PAGER** another viewer for the pages, e.g. `SetEnv PAGER Maki`.
+  The page is handed to it in colour; man's own viewer is not used.
+
+## EXAMPLES
+    man ls
+    man -k copy
+    man -w list
+    man -L svenska list
+    man grep | grep -i colour
+    SetEnv PAGER Maki
+
+## RETURN CODES
+0 a page was shown, 5 no page was found, 10 bad arguments, 20 Ctrl-C.
+
+## SEE ALSO
+`which`, `grep`, Maki, MultiView

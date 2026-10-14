@@ -1,0 +1,56 @@
+# tail - show the last lines (or bytes) of files, or follow a log
+
+## SYNOPSIS
+    tail [-n N | -N | -n +N | +N] [-c N] [-f] [-qv] [file | pattern | - ...]
+
+## DESCRIPTION
+Shows the end of each file: the last 10 lines, unless told otherwise.
+Good for the newest entries of a log, or the end of a long output.
+
+A file is read from its end backwards, so the last lines of even a very
+big file come at once. The input (a pipe) is read through, keeping the
+last lines. When several files are shown, each comes under a line
+`==> name <==`.
+
+With **-f** tail keeps watching the files after showing their end, and
+shows whatever is added to them, until you press Ctrl-C: ideal for
+watching a log file grow.
+
+## OPTIONS
+- **-n** N
+  the last N lines.
+- **-N** the same, shorter: `tail -20` is `tail -n 20`.
+- **-n** +N
+  everything from line N on (`-n +2` leaves out the first line).
+- **+N** the same, the old way: `tail +2 file`.
+- **-c** N
+  the last N bytes instead of lines; `-c +N` from byte N on. N may end
+  in k or M (1024s).
+- **-f** follow: wait for more to be added and show it, until Ctrl-C.
+  The files are looked at four times a second. **-F** is the same.
+- **-q** never show the file names.
+- **-v** always show the file names, even for one file.
+
+## EXAMPLES
+    tail S:Startup-Sequence
+    tail -n 50 RAM:debug.log
+    tail -f RAM:debug.log
+    ls -lt Work:Downloads | tail -3
+    tail -n +2 Work:Data/table.csv | sort
+
+## RETURN CODES
+0 fine (also when **-f** is ended with Ctrl-C), 5 a file could not be
+read or a pattern matched nothing, 10 bad arguments, 20 stopped with
+Ctrl-C.
+
+## NOTES
+With **-f**, a file that gets shorter (started anew) is followed from
+its start again. **-f** follows only real files, not the input, and at
+most 32 of them.
+
+Patterns may be written `#?` or `\*`; upper and lower case are the same.
+
+`tail ?` shows the usage line.
+
+## SEE ALSO
+`head`, `cat`, `grep`, `wc`, Type

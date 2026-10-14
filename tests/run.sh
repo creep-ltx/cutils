@@ -33,13 +33,15 @@ for line in open(path).read().split('\n'):
 fail = 0
 for b in blocks:
     while b['out'] and b['out'][-1] == '': b['out'].pop()
-    want = '\n'.join(b['out']).replace('{T}', f'RAM:cut{S}')
+    want = '\n'.join(b['out']).replace('{TV}', f'Ram Disk:cut{S}').replace('{T}', f'RAM:cut{S}')
     b['cmd'] = b['cmd'].replace('{T}', f'RAM:cut{S}')
     script = f'FailAt 21\nCD RAM:cut{S}\nPath RAM:cu{S} ADD HEAD\n' + b['cmd'] + f'\nSetEnv curc{S} $RC\n'
     open(f'/tmp/cutest{S}.script', 'w').write(script)
     subprocess.run([w, 'put', f'/tmp/cutest{S}.script', f'RAM:cutest{S}.script'], capture_output=True)
     r = subprocess.run([w, 'run', '--max-time', '60', f'Execute RAM:cutest{S}.script'], capture_output=True, text=True, errors='replace')
-    got = (r.stdout + r.stderr).rstrip('\n')
+    # wasabi's own notices (e.g. "refused as off-LAN") are not the command's output
+    err = '\n'.join(l for l in r.stderr.split('\n') if not (l.startswith('wasabi: ') and 'off-LAN' in l))
+    got = (r.stdout + err).rstrip('\n')
     rc = subprocess.run([w, 'run', f'GetEnv curc{S}'], capture_output=True, text=True).stdout.strip()
     ok = got == want and (b['rc'] is None or str(b['rc']) == rc)
     if not ok:

@@ -1,0 +1,66 @@
+# xargs - run a command with the words of the input as arguments
+
+## SYNOPSIS
+    xargs [-0rt] [-n N] [-L N] [-I R] [-s N] [command [argument ...]]
+
+## DESCRIPTION
+Reads words from its input and puts them after a command, as many to a
+command line as fit, then runs each command line, one after the other.
+It is the glue between a command that lists names (find, ls, grep -l)
+and a command that should act on them:
+
+    find Work: -name #?.bak | xargs rm
+
+With no command, Echo is used. Words are split at blanks and line ends;
+'...' and "..." keep blanks inside a word, and `\\` takes the next
+character as it is (as GNU xargs).
+
+The commands run through the Shell, with their input from NIL: and
+their output going where xargs's goes, so
+`| xargs grep x | wc -l` works.
+
+## OPTIONS
+- **-n** N
+  at most N words to a command.
+- **-L** N
+  the words of at most N input lines to a command. **-l** is the same.
+- **-I** R
+  one command for each input line; R in the arguments is replaced by
+  the line (blanks at its start and end left out). **-i** is the same.
+- **-s** N
+  command lines of at most N bytes. The default is 512, the Shell's own
+  line length.
+- **-t** show each command (on the error stream) before it runs.
+- **-0** words end only at 0 bytes, and quotes are plain characters:
+  for the output of `find -print0`, safe with any name.
+- **-r** accepted. With no words at all nothing is run, always (GNU runs
+  the command once; BSD and this xargs do not, so `rm` never runs with
+  no names).
+- **-x** accepted and ignored.
+
+## EXAMPLES
+    find Work: -name #?.bak | xargs rm
+    find Work:Projects -name #?.c | xargs grep -l main
+    find RAM: -type f -print0 | xargs -0 ls -l
+    ls -1 Work:Pictures | xargs -n 1 echo
+    seq 1 5 | xargs -I {} mkdir RAM:dir-{}
+    grep -l -r Amiga Work:Docs | xargs -I {} cp {} DH1:Backup
+
+## RETURN CODES
+The worst return code of the commands run (0 when all were fine);
+10 bad arguments, a word longer than a command line, or a command that
+could not be started (xargs then stops); 20 stopped with Ctrl-C.
+
+## NOTES
+Each word is passed as the Shell reads it: in quotes when it has a
+blank or a `;` `<` `>` `|` `"` in it (or is empty), with `"` written
+`\*"` and `\*` written `\*\*` inside. So names with spaces arrive whole.
+
+xargs puts the words *after* the command. When they must go somewhere
+else, as the files for cp, which come before its TO, use **-I** (see
+the last example).
+
+`xargs ?` shows the usage line.
+
+## SEE ALSO
+`find`, `grep`, `ls`, `seq`, `rm`

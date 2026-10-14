@@ -1,6 +1,6 @@
 /* tail - the last lines (or bytes) of files.
  *
- *   tail [-n N | -N | -n +N] [-c N] [-f] [-qv] [file | pattern | - ...]
+ *   tail [-n N | -N | -n +N | +N] [-c N] [-f] [-qv] [file | pattern | - ...]
  *
  * 10 lines unless told. A file is read from its end backwards, so the last
  * lines of a big file come at once; the input (a pipe) is read through,
@@ -14,7 +14,7 @@
 #include "cu.h"
 
 const char *cu_name = "tail";
-static const char version[] = "$VER: tail 0.1b1 (14.10.2026)";
+static const char version[] = "$VER: tail 0.1b2 (14.10.2026)";
 
 static LONG count = 10;
 static int bytes, from, follow, names, first = 1, nfiles;
@@ -185,7 +185,13 @@ int main(void)
     int c, i, ok, quiet = 0, verbose = 0;
     (void)version;
     if (cu_args("tail [-n N | -N | -n +N] [-c N] [-f] [-qv] [file | pattern | - ...]") < 0) return cu_rc;
-    /* +N alone, as the old tail */
+    /* +N alone, as the old tail: tail +5 file = tail -n +5 file */
+    if (cu_argc && cu_argv[0][0] == '+' && cu_argv[0][1] >= '0' && cu_argv[0][1] <= '9') {
+        from = 1;
+        count = cu_num(cu_argv[0] + 1, &ok);
+        if (!ok) { cu_err(10, cu_argv[0], "not a count"); return cu_rc; }
+        cu_argv++; cu_argc--;
+    }
     while ((c = cu_opt("n:c:fFqv#", &v)) >= 0) switch (c) {
         case 'n': case '#': case 'c':
             from = *v == '+';

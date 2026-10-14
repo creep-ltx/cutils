@@ -1,0 +1,105 @@
+# find - search drawer trees for files by name, size, date, kind
+
+## SYNOPSIS
+    find [path | pattern ...] [-name PAT] [-type f|d|l]
+         [-size [+-]N[ckM]] [-mtime [+-]N] [-newer FILE] [-empty]
+         [-maxdepth N] [-mindepth N] [! -o -a ( )]
+         [-print] [-prune] [-delete] [-exec CMD {} ;]
+
+## DESCRIPTION
+Goes through every drawer below the paths given, all the way down, and
+asks the *expression* (the tests after the paths) about every file and
+drawer it meets. Those that pass are printed, one path a line, or handed
+to an action such as **-exec** or **-delete**. It works as GNU find does.
+
+Each drawer's entries are taken in natural order (`file9` before
+`file10`). With no path, the current drawer is searched; the names are
+then printed relative to it (`x`, `sub/x`). A path is printed as given,
+with the names under it joined by `/` (or right after the `:` of a
+volume: `RAM:x`).
+
+Several tests in a row must all be true. Use **-o** for "or", **!** for
+"not", and `(` `)` to group them.
+
+## OPTIONS
+Tests:
+- **-name** PAT
+  the name matches the Amiga pattern PAT; `\*` works as `#?`. Upper and
+  lower case are always the same, as with Amiga names.
+- **-iname** PAT
+  the same as **-name**.
+- **-type** T
+  f a file, d a drawer, l a link (soft link or hard link). Several at
+  once: `-type fl` or `-type f,l`.
+- **-size** [+-]N[c|b|k|M|G]
+  the size in those units, rounded up: plain N and c are bytes, b blocks
+  of 512 bytes, k M G kilo, mega, giga (1024s). `+N` more than N, `-N`
+  less than N. Because of the rounding up, `-size -1k` finds only empty
+  files; use `-size -1024` for "under 1 KB".
+- **-mtime** [+-]N
+  changed N days ago, in whole 24 hours (0 is the last 24 hours).
+  `-mtime -7` is the last week.
+- **-mmin** [+-]N
+  changed N minutes ago.
+- **-newer** FILE
+  changed after FILE was.
+- **-empty** an empty file, or a drawer with nothing in it.
+- **-true**, **-false** always true, never true.
+
+Actions:
+- **-print** print the path and a new line. This is what happens when
+  the expression has no action in it.
+- **-print0** print the path followed by a 0 byte (for `xargs -0`).
+- **-prune** do not go into this drawer.
+- **-delete** delete it. Turns on **-depth**, so the contents of a drawer
+  go before the drawer. A volume or assign itself (`Work:`) and the
+  current drawer are never deleted; a drawer that still has something in
+  it is not deleted, as Delete would refuse it.
+- **-exec** CMD ARGS ;
+  run the command, with every `{}` replaced by the path. True when the
+  command returns 0.
+- **-exec** CMD {} +
+  run the command once with many paths at a time.
+
+Operators, strongest first: `(` EXPR `)`; `!` EXPR or **-not** EXPR;
+EXPR EXPR or EXPR **-a** EXPR (**-and**); EXPR **-o** EXPR (**-or**).
+
+Options for the whole search (they may stand anywhere):
+- **-maxdepth** N
+  go no deeper than N levels below each path (0: only the paths).
+- **-mindepth** N
+  leave out what is less than N levels down (1 leaves out the paths).
+- **-depth** each drawer after its contents.
+
+## EXAMPLES
+    find Work: -name #?.c
+    find SYS: -type f -size +100k
+    find Work:Projects -mtime -1
+    find RAM: -name #?.bak -delete
+    find Work:Docs -name #?.txt -exec grep -l Amiga {} ";"
+    find Work:Projects -name #?.o | xargs rm
+
+## RETURN CODES
+0 fine, also when nothing matched; 5 something could not be read or
+deleted, or a command could not be run; 10 a bad expression; 20 stopped
+with Ctrl-C.
+
+## NOTES
+The Shell takes an unquoted `;` as the start of a comment. After
+**-exec** write `";"` or `\;`, or simply end the line there.
+
+With `{} +`, quote the `+`: at the end of a line the Shell takes it for
+"more lines follow". Quote `>` and `<` meant for the command too
+(`">NIL:"`), or the Shell takes them for find itself. Words with spaces
+are quoted for the command. Its input is the console, else NIL:.
+
+Soft links, and hard links to drawers, are never gone into. find keeps
+its list of drawers to visit in memory, not on the Shell's stack, so no
+tree is too deep for it.
+
+A disk that is not in its drive gives a message, not a requester.
+
+`find ?` shows the usage line.
+
+## SEE ALSO
+`xargs`, `ls`, `grep`, `du`, `rm`, List, Search

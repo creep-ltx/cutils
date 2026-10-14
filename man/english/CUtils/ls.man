@@ -1,0 +1,74 @@
+# ls - list drawers in columns, coloured by kind
+
+## SYNOPSIS
+    ls [-1aAdFhlrRSt] [path | pattern ...]
+
+## DESCRIPTION
+Shows what is in a drawer, in columns that fit the window, in natural
+order (`file9` before `file10`), upper and lower case alike, drawers and
+files mixed. With no path it lists the current drawer.
+
+A drawer lists its contents, a pattern (`#?` or `\*`) the names it
+matches, a file just itself. Files and pattern matches come first as one
+list, then each drawer, under its name when there are several.
+
+In a window the names are coloured by their kind: drawers, links,
+programs, scripts, archives, pictures, sounds, sources, text, icons and
+hidden files each have a colour. When the output goes to a file or a
+pipe, ls writes one name a line and no colours, so other commands can
+read it.
+
+Icons (`.info`) and files with the h bit are left out unless **-a** is
+given, or a pattern names them.
+
+## OPTIONS
+- **-1** one name a line.
+- **-a** also show `.info` icons and files with the h (hidden) bit.
+- **-A** the same as **-a**.
+- **-d** a drawer itself, not what is in it.
+- **-F** a mark after each name: `/` drawers, `\*` programs, `@` links.
+- **-h** sizes in K, M and G, easy to read (with **-l**).
+- **-l** long form: protection bits, size, date, time, name, and the
+  filenote on a line below.
+- **-r** reverse the order.
+- **-R** also list every drawer inside, all the way down (32 levels at
+  most; links are not followed).
+- **-S** by size, the biggest first.
+- **-t** by date, the newest first.
+
+## EXAMPLES
+    ls
+    ls -la Work:
+    ls -lt Work:Downloads
+    ls -lhS SYS:Libs
+    ls SYS:C/#?dir#?
+    ls -1 RAM: | wc -l
+
+## RETURN CODES
+0 fine, 5 a path could not be read or a pattern matched nothing,
+10 bad arguments, 20 stopped with Ctrl-C.
+
+## NOTES
+Options may also come after the names (`ls Work: -la`); a `--` makes
+everything after it a name.
+
+The protection bits in the long form are as List shows them:
+`hsparwed`. A letter means the bit is set (h s p a) or the action is
+allowed (r w e d); `-` means not.
+
+The colours are in **ENV:FileColours** (else ENVARC:FileColours), which
+ls writes with its defaults when it is missing. Each line is either
+`KIND CTERM,PLAIN`, the colour numbers (SGR) for CTerm and for a plain
+Shell window, or `.EXT KIND`, saying that names ending in .ext are of
+that kind. The kinds: drawer link program script archive picture sound
+source text icon hidden. A program is a name with no ending and the e
+bit, a script has the s bit, hidden the h bit, an icon ends in .info.
+Ahiru and Maki read the same file.
+
+The width of the window comes from the variable COLUMNS (csh keeps it),
+else the console is asked.
+
+`ls ?` shows the usage line.
+
+## SEE ALSO
+`stat`, `find`, `du`, `file`, `chmod`, List, Dir

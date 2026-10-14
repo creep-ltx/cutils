@@ -8,9 +8,9 @@ AMIGA   = $(HOME)/opt/amiga
 CC      = $(AMIGA)/bin/m68k-amigaos-gcc
 CFLAGS  = -Os -m68020 -noixemul -resident32 -fomit-frame-pointer -fno-common -fbbb=- -Wall -Wno-pointer-sign -Ilib
 LDFLAGS = -m68020 -noixemul -resident32 -s
-CMDS    = cat head tail wc grep tee cp mv rm mkdir touch ls find du df sort uniq cut tr xargs diff which date basename dirname seq file stat ln chmod
+CMDS    = cat head tail wc grep tee cp mv rm mkdir touch ls find du df sort uniq cut tr xargs diff which date basename dirname seq file stat ln chmod man
 LIB     = build/libcu.a
-LIBOBJ  = build/cu.o build/cu_each.o build/cu_in.o build/cu_tree.o build/cu_walk.o build/cu_colours.o build/regex.o build/cu_lines.o build/cu_date.o build/cu_prot.o
+LIBOBJ  = build/cu.o build/cu_each.o build/cu_in.o build/cu_tree.o build/cu_walk.o build/cu_colours.o build/regex.o build/cu_lines.o build/cu_date.o build/cu_prot.o build/tui.o
 
 all: $(addprefix bin/,$(CMDS))
 

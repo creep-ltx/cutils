@@ -78,6 +78,10 @@ The rules:
 - Inline: `**bold**`, `` `code` ``, `*underline*`. No other markup; a literal `*` or `` ` `` is
   written `\*`, `` \` ``.
 - Latin-1 or plain ASCII; lines up to 76 characters so Type shows them unwrapped.
+- `\*` is a plain star everywhere outside verbatim blocks, inside `` `code` `` too (man.c
+  takes the escape first); in a verbatim block a star is just `*`.
+- An option's argument goes after the term in capitals (`- **-k** POS1[,POS2] text`): man
+  puts the first capitals word after the term into the term column, underlined.
 
 ## How it shows
 

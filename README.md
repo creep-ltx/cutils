@@ -21,6 +21,7 @@ know, one small pure program each, made for `C:` and for csh pipes.
 | head | the first lines or bytes; -n -N -c -q -v | 0.1b1, tested in FS-UAE |
 | ln | hard (default) and soft (-s) links with MakeLink; -f -v; never across volumes or to roots | 0.1b1, tested in FS-UAE |
 | ls   | drawers in columns, coloured by kind (ENV:FileColours); -1 -a -A -d -F -h -l -r -R -S -t | 0.3b1 (CShell's ls 0.2 on lib/), tested in FS-UAE |
+| man  | manual pages: ours in MAN:, the system's own in HELP:, a program's .guide/.doc; own viewer (or ENV:PAGER); -k -w -a -L -l | 0.1b1, tested in FS-UAE |
 | mkdir | make drawers; -p | 0.1b1, tested in FS-UAE |
 | mv   | move: Rename() on one volume, copy+delete across, trees all or nothing; -f -b | 0.1b1, tested in FS-UAE |
 | rm   | delete: drawers only with -r, roots never, links as links; -r -f -v | 0.1b1, tested in FS-UAE |
@@ -36,8 +37,8 @@ know, one small pure program each, made for `C:` and for csh pipes.
 | which | replaces C:Which: the same output and template (NORES RES ALL), and Unix which [-a] | 0.1b1, tested in FS-UAE |
 | xargs | commands built from the input's words; -n -L -I -s -t -0, never runs with no words | 0.1b1, tested in FS-UAE |
 
-Every command answers `?` with its usage; its source's first comment is its
-manual. Design and rules: [docs/design.md](docs/design.md).
+Every command answers `?` with its usage, and has a manual page: `man NAME`
+(pages in man/english/CUtils, installed into MAN:english/CUtils; docs/man.md). Design and rules: [docs/design.md](docs/design.md).
 
     make              builds bin/*
     tests/run.sh      the cases in tests/cases/ on the private FS-UAE
