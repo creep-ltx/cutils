@@ -10,19 +10,29 @@ AmigaOS 3.2 already has the place: **`HELP:`** (= SYS:Locale/Help, more drawers 
 `HELP:<language>/Sys/Commands/NAME.help` (plain text in manual form, or AmigaGuide), plus
 `Sys/Utilities`, `Sys/Tools`... for the programs. So:
 
-- **No MAN: assign.** Our pages go in **`HELP:Man/<language>/<program>/<page>`**, the user's
-  layout: e.g. `HELP:Man/english/CUtils/ls.man`, `HELP:Man/english/CShell/csh.man`,
-  `HELP:Man/english/Sumi/sumi.man`. One drawer per program or package: tidy, easy to remove,
-  never mixed with the OS's own `Sys/`.
+- **MAN: is an assign** (the user, 2026-10-14), and man only ever reads
+  **`MAN:<language>/<program>/<page>`**, e.g. `MAN:english/CUtils/ls.man`,
+  `MAN:english/CShell/csh.man`, `MAN:english/Sumi/sumi.man`. One drawer per program or
+  package: tidy, easy to remove. Where MAN: points is the machine's choice:
+  - with HELP: (3.2 sets it in S:Startup-Sequence; 3.0/3.1 most likely too, not checked):
+    `Assign MAN: HELP:Man`, so the pages sit with the system's help;
+  - without HELP: (2.x): `Assign MAN: SYS:Man`;
+  - your own pages added on top: `Assign MAN: Work:MyPages ADD` (DOS looks in each drawer
+    of a multi-assign in turn, so man needs no list of its own).
+  The installer writes the one line into S:User-Startup (the user's go first). With no MAN:,
+  man tries HELP:Man, then SYS:Man, and says how to make MAN:.
 - **The Amiga's own commands**: man shows 3.2's own `HELP:<language>/Sys/Commands/NAME.help`
   (on every 3.2 machine; nothing of Hyperion's is copied or published). Fresh pages, in my own
   words, only where 3.2 has none, and for our replacements (sort, which, date) which take both
   the Amiga and the Unix form.
 - **Programs with no page**: their own NAME.doc / NAME.guide (next to the program, or in
   HELP:), AmigaGuide shown as text.
-- **Language**: the one set in Locale prefs, falling back to English. Our own pages: English.
+- **Language**: the one set in Locale prefs, falling back to English (no Locale, as on 2.x:
+  english). Our own pages: English.
+- man itself needs only AmigaDOS 2.0 calls, so it can run on 2.04 and up (CUtils is built for
+  3.2).
 
-Search order for `man NAME`: HELP:Man/<lang>/*/NAME.man, then HELP:<lang>/Sys/*/NAME.help,
+Search order for `man NAME`: MAN:<lang>/*/NAME.man, then (where HELP: exists) HELP:<lang>/Sys/*/NAME.help,
 then english for both, then NAME.doc/.guide found near the program (which-style path search)
 or anywhere in HELP:.
 
