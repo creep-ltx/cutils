@@ -36,15 +36,48 @@ Search order for `man NAME`: MAN:<lang>/*/NAME.man, then (where HELP: exists) HE
 then english for both, then NAME.doc/.guide found near the program (which-style path search)
 or anywhere in HELP:.
 
-## The page format
+## The page format (.man)
 
-Simple marked-up text (Markdown-like) in `NAME.man`: `# name - one line` first, `## SECTION`
-headings, `**bold**`, `` `code` ``, indented blocks as they are. Readable with Type and in
-MultiView as plain text; man shows it in colour. man also reads 3.2's plain manual-form pages
-(NAME/FORMAT/TEMPLATE/FUNCTION headings coloured) and AmigaGuide (@node, @{b}, links shown).
+Plain text with a few marks, readable as it is (Type, MultiView). An example is the spec:
 
-Pages for our own programs are generated at build time from each source's header comment
-(CUtils now; csh's commands, Sumi, Maki, Ahiru, CTerm later).
+    # ls - list drawers in columns, coloured by kind
+
+    ## SYNOPSIS
+        ls [-1aAdFhlrRSt] [path | pattern ...]
+
+    ## DESCRIPTION
+    Shows what is in a drawer, in columns that fit the window. Text in a
+    paragraph is joined and wrapped by man to the window's width; a blank line
+    ends a paragraph. **bold**, `code` (shown bold too), *word* (underlined).
+
+    ## OPTIONS
+    - **-1** one name a line.
+    - **-l** long: protection bits, size, date, name, the filenote below.
+    - **-k** POS1[,POS2]
+      a continued item is indented two spaces; it joins the item.
+
+    ## EXAMPLES
+        ls -la Work:
+        ls #?.c
+
+    ## RETURN CODES
+    0 fine, 5 a path could not be read, 10 bad arguments, 20 Ctrl-C.
+
+    ## SEE ALSO
+    `find`, `du`, `stat`
+
+The rules:
+- Line 1: `# NAME - summary` (the summary is what `man -k` searches and shows).
+- `## HEADING`: a section; the usual ones, in this order: SYNOPSIS, DESCRIPTION, OPTIONS,
+  then any of the program's own (AMIGA FORM, FILES, ...), EXAMPLES, RETURN CODES, NOTES,
+  SEE ALSO.
+- A line indented 4 spaces (or a tab): shown exactly as it is (synopsis, examples, tables).
+- `- ` at a line's start: a list item; lines after it indented 2 spaces belong to it. An item
+  starting with `**term**` is shown with the term on the left and the text in a column after
+  it (as Unix man's options), or under it when the term is long.
+- Inline: `**bold**`, `` `code` ``, `*underline*`. No other markup; a literal `*` or `` ` `` is
+  written `\*`, `` \` ``.
+- Latin-1 or plain ASCII; lines up to 76 characters so Type shows them unwrapped.
 
 ## How it shows
 
