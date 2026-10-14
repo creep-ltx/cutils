@@ -1,0 +1,4 @@
+@database test.guide
+@node main "Test"
+Hello
+@endnode

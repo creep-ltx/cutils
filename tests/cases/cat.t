@@ -35,10 +35,10 @@ no newline at end
 $ cat -v crlf.txt
 dos one^M
 dos two^M
-$ cat #?.txt | wc -l
-119
-$ cat *.txt | wc -l
-119
+$ cat [abg].txt | wc -l
+15
+$ cat n*.txt | wc -l
+100
 $ cat nope.txt
 cat: nope.txt: object not found
 ? 5
@@ -50,8 +50,8 @@ cat [-bnsEv] [file | pattern | - ...]
 $ cat z#?
 cat: z#?: nothing matches
 ? 5
-$ cat RAM:cut
-cat: RAM:cut: is a drawer
+$ cat {T}
+cat: {T}: is a drawer
 ? 5
 $ cat long.txt | wc -c
 20007

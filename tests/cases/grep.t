@@ -68,15 +68,10 @@ b.txt:Beta
 b.txt:gamma delta
 $ grep -h Beta g.txt b.txt
 Beta
-$ grep -c a #?.txt
+$ grep -c a [abg].txt
 a.txt:0
 b.txt:3
-crlf.txt:0
-empty.txt:0
 g.txt:5
-long.txt:0
-n100.txt:0
-nonl.txt:1
 $ grep -m 2 line n100.txt
 line 1
 line 2
@@ -119,5 +114,5 @@ grep: no pattern (grep ? for help)
 ? 10
 $ grep -c x long.txt
 1
-$ grep -r alpha RAM:cut
-RAM:cut/b.txt:alpha
+$ grep -r "gamma delta" {T}
+{T}/b.txt:gamma delta

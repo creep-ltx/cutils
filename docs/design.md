@@ -17,6 +17,12 @@ this replaces them.
   all 15 in C: with the p bit; the old ones kept as C:cp-e.bak, mv-e.bak, rm-e.bak,
   mkdir-e.bak (Amiga E) and C:ls-0.2.bak (CShell's ls). `wasabi put` needs `--force` for C:.
   C: is before SYS:System on its path, so `find` is ours, not the Workbench Find tool.
+- Added 2026-10-14, tested in FS-UAE only (not yet on the A1200): diff, which, date,
+  basename, dirname, seq, file, stat, ln, chmod. `which` and `date` replace C:Which and
+  C:Date (see the rule below); installing them means keeping the originals aside.
+  diff's algorithm was also fuzzed on Linux against GNU diff (a stand-in for cu.h and
+  the dos calls): the same unified output in 400 of 400 random pairs, valid patches and
+  minimal edit counts everywhere; -i -w -b -B agree with GNU in 2800 runs.
 - Backed up to the NAS: remote `nas` = /mnt/nas/home/Code/CUtils.git.
 
 ## The rules every command keeps
@@ -47,13 +53,14 @@ this replaces them.
   replace), metadata (protection, date, filenote) kept like `Copy CLONE`, roots
   refused, links never followed into, trees walked with explicit lists on the
   heap (the Shell's stack is often 4 KB; `cu_stackleft()` for a check).
-- **Names that clash with 3.2's C:** (Which, Search, Type) are not used. The
-  one exception is `sort` (the user's decision, 2026-10-14): it replaces C:Sort,
-  so it also takes C:Sort's ReadArgs template - any of its keywords (FROM TO
-  COLSTART CASE NUMERIC LEXICOGRAPHIC DESCENDING SKIPBLANKS BUFSIZE), or exactly
-  two names and no -flags, and it behaves as Sort 46.4 does (checked side by
-  side in the emulator, cases in tests/cases/sort.t; the details are in
-  sort.c's header).
+- **Names that clash with 3.2's C:** (Search, Type) are not used. Three are
+  taken over on purpose (the user's decision, 2026-10-14): `sort`, `which` and
+  `date` replace C:Sort, C:Which and C:Date, so each also takes the Amiga's
+  ReadArgs template and behaves and prints as the Amiga's does (checked side by
+  side with Sort 46.4, Which 45.2 and Date 47.2 in FS-UAE; details in their
+  header comments). sort's Amiga mode: any of its keywords, or exactly two names
+  and no -flags. Return codes differ only for bad arguments (10). Keep the
+  originals as C:Sort-amiga, C:Which-amiga, C:Date-amiga when installing.
   (`find` meets `SYS:System/Find`, a Workbench tool: C: comes before System in
   the standard path, so find in C: wins; the tests put RAM:cu first with
   `Path ... HEAD`, also ahead of an older ls in C:.)
@@ -75,5 +82,8 @@ this replaces them.
   calls: find, du), `lib/cu_colours.c` (ENV:FileColours and the kinds of files,
   from CShell's ls; exec and dos only, so Ahiru and Maki can copy it as it is),
   `lib/cu_lines.c` (sort: lines kept in 64 KB chunks with a pointer array, and
-  a stable bottom-up merge sort).
+  a stable bottom-up merge sort),
+  `lib/cu_date.c` (the calendar by hand, touch's date parser, ISO dates, the
+  after-2046 DateStamp fix: touch, date, stat, diff), `lib/cu_prot.c` (protection
+  bits as "----rwed": stat, chmod).
 - `src/NAME.c` - one command each, `$VER: NAME 0.1bN (date)`.

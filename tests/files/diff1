@@ -1,0 +1,14 @@
+/* hello.c */
+#include <stdio.h>
+
+int main(void)
+{
+    printf("hello\n");
+    return 0;
+}
+
+static int x;
+static int y;
+static int z;
+
+/* end */

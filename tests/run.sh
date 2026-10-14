@@ -33,7 +33,8 @@ for line in open(path).read().split('\n'):
 fail = 0
 for b in blocks:
     while b['out'] and b['out'][-1] == '': b['out'].pop()
-    want = '\n'.join(b['out'])
+    want = '\n'.join(b['out']).replace('{T}', f'RAM:cut{S}')
+    b['cmd'] = b['cmd'].replace('{T}', f'RAM:cut{S}')
     script = f'FailAt 21\nCD RAM:cut{S}\nPath RAM:cu{S} ADD HEAD\n' + b['cmd'] + f'\nSetEnv curc{S} $RC\n'
     open(f'/tmp/cutest{S}.script', 'w').write(script)
     subprocess.run([w, 'put', f'/tmp/cutest{S}.script', f'RAM:cutest{S}.script'], capture_output=True)

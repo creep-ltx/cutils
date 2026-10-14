@@ -1,2 +1,3 @@
 build/
 .claude/
+tests/diff-linux/ldiff
