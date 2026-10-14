@@ -17,6 +17,12 @@ this replaces them.
   all 15 in C: with the p bit; the old ones kept as C:cp-e.bak, mv-e.bak, rm-e.bak,
   mkdir-e.bak (Amiga E) and C:ls-0.2.bak (CShell's ls). `wasabi put` needs `--force` for C:.
   C: is before SYS:System on its path, so `find` is ours, not the Workbench Find tool.
+- Added 2026-10-14, tested in FS-UAE only (not yet on the A1200): diff, which, date,
+  basename, dirname, seq, file, stat, ln, chmod. `which` and `date` replace C:Which and
+  C:Date (see the rule below); installing them means keeping the originals aside.
+  diff's algorithm was also fuzzed on Linux against GNU diff (a stand-in for cu.h and
+  the dos calls): the same unified output in 400 of 400 random pairs, valid patches and
+  minimal edit counts everywhere; -i -w -b -B agree with GNU in 2800 runs.
 - Backed up to the NAS: remote `nas` = /mnt/nas/home/Code/CUtils.git.
 
 ## The rules every command keeps
@@ -47,7 +53,13 @@ this replaces them.
   replace), metadata (protection, date, filenote) kept like `Copy CLONE`, roots
   refused, links never followed into, trees walked with explicit lists on the
   heap (the Shell's stack is often 4 KB; `cu_stackleft()` for a check).
-- **Names that clash with 3.2's C:** (Sort, Which, Search, Type) are not used.
+- **Names that clash with 3.2's C:** (Sort, Search, Type) are not used. Two
+  are taken over on purpose: `which` and `date` replace C:Which and C:Date,
+  so each accepts the Amiga's template as well as the Unix flags and prints
+  what the Amiga's prints (checked against Which 45.2 and Date 47.2 in FS-UAE,
+  see their header comments; return codes differ only for bad arguments: 10,
+  where Which says 5 and Date 20). Keep the originals as C:Which-amiga and
+  C:Date-amiga when installing.
   (`find` meets `SYS:System/Find`, a Workbench tool: C: comes before System in
   the standard path, so find in C: wins; the tests put RAM:cu first with
   `Path ... HEAD`, also ahead of an older ls in C:.)
@@ -67,5 +79,8 @@ this replaces them.
   copied:" list),
   `lib/cu_walk.c` (a tree walked with a list on the heap, no locks held between
   calls: find, du), `lib/cu_colours.c` (ENV:FileColours and the kinds of files,
-  from CShell's ls; exec and dos only, so Ahiru and Maki can copy it as it is).
+  from CShell's ls; exec and dos only, so Ahiru and Maki can copy it as it is),
+  `lib/cu_date.c` (the calendar by hand, touch's date parser, ISO dates, the
+  after-2046 DateStamp fix: touch, date, stat, diff), `lib/cu_prot.c` (protection
+  bits as "----rwed": stat, chmod).
 - `src/NAME.c` - one command each, `$VER: NAME 0.1bN (date)`.

@@ -128,6 +128,31 @@ int cu_kind(const char *name, LONG type, LONG prot);
 const char *cu_sgr(int kind, int cterm);   /* cterm: CTerm's numbers, else a plain window's */
 int cu_iscterm(BPTR fh);                   /* the handle is a CTerm console */
 
+/* ---- cu_date.c: the calendar, dates from text ----
+ * cu_days(): days since 1.1.1978 (the Amiga's ds_Days) of a Gregorian
+ * date; cu_civil() back. cu_parsedate(): 2026-10-14, "2026-10-14 13:45",
+ * 2026-10-14T13:45:10, a time alone (13:45, today), or the Amiga's own
+ * "14-Oct-26 13:45:10", Today, Yesterday, a weekday (StrToDate); 0 when
+ * it is none of them. cu_parsetime(): H:MM[:SS] into ds_Minute/ds_Tick.
+ * cu_isodate(): "2026-10-14 18:36:41" into 20 bytes. cu_unixtime():
+ * seconds since 1970 (the Amiga's clock taken as UTC). */
+extern const char *const cu_months[12];   /* "January" ... */
+extern const char *const cu_wdays[7];     /* "Sunday" ... (ds_Days % 7 == 0 is a Sunday) */
+LONG cu_days(LONG y, LONG m, LONG d);
+void cu_civil(LONG days, LONG *y, LONG *m, LONG *d);
+int cu_mdays(LONG y, LONG m);
+int cu_parsetime(const char *p, struct DateStamp *ds);
+int cu_parsedate(const char *s, struct DateStamp *ds);
+void cu_isodate(const struct DateStamp *ds, char *buf);
+ULONG cu_unixtime(const struct DateStamp *ds);
+void cu_dsfix(struct DateStamp *ds);   /* a stamp after 2046 (negative days from DateStamp()) made right */
+
+/* ---- cu_prot.c ----
+ * cu_protstr(): the protection bits as List shows them, "----rwed" (9
+ * bytes): h s p a when set, r w e d when allowed (those four are kept
+ * inverted: a set bit forbids). */
+void cu_protstr(LONG prot, char *b);
+
 /* ---- regex.c ---- */
 #define RE_GROUPS 10
 void *re_comp(const char *re, int nocase);
