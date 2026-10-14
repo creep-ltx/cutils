@@ -17,6 +17,9 @@ this replaces them.
   all 15 in C: with the p bit; the old ones kept as C:cp-e.bak, mv-e.bak, rm-e.bak,
   mkdir-e.bak (Amiga E) and C:ls-0.2.bak (CShell's ls). `wasabi put` needs `--force` for C:.
   C: is before SYS:System on its path, so `find` is ours, not the Workbench Find tool.
+  **Second batch installed 2026-10-14** (sort uniq cut tr xargs diff which date basename
+  dirname seq file stat ln chmod, touch 0.1b2): the Amiga's own kept as C:Sort-amiga,
+  C:Which-amiga, C:Date-amiga. All 30 in C: now; 955 test cases green in FS-UAE.
 - Added 2026-10-14, tested in FS-UAE only (not yet on the A1200): diff, which, date,
   basename, dirname, seq, file, stat, ln, chmod. `which` and `date` replace C:Which and
   C:Date (see the rule below); installing them means keeping the originals aside.
