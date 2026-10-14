@@ -13,7 +13,11 @@ this replaces them.
   1240), then `tests/run.sh [name...]`. Cases are `tests/cases/NAME.t` (format in
   run.sh's head), test files in `tests/files/`. `S=x tests/run.sh` uses RAM:cux /
   RAM:cutx, so several sessions can test at once. After a crash: `tests/uae-restart.sh`.
-- State: see the table in README.md.
+- State: see the table in README.md. **Installed on the A1200 2026-10-14** (the user asked):
+  all 15 in C: with the p bit; the old ones kept as C:cp-e.bak, mv-e.bak, rm-e.bak,
+  mkdir-e.bak (Amiga E) and C:ls-0.2.bak (CShell's ls). `wasabi put` needs `--force` for C:.
+  C: is before SYS:System on its path, so `find` is ours, not the Workbench Find tool.
+- Backed up to the NAS: remote `nas` = /mnt/nas/home/Code/CUtils.git.
 
 ## The rules every command keeps
 
