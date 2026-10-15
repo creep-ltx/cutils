@@ -6,6 +6,7 @@
 #     expected output lines
 #     ? rc                     (optional: the return code it must give)
 # blank lines inside the expected output are kept; a block ends at the next $.
+# {T} is the test drawer, {S} the S= letters (for drawers elsewhere, e.g. SYS:T/cuw{S}).
 # The commands are in RAM:cu/ (first on the path for the run, before C:), tests/files/* in RAM:cut/.
 # S=x: RAM:cux and RAM:cutx instead, so several sessions can test at once.
 # The emulator dead (a crash): tests/uae-restart.sh.
@@ -33,8 +34,8 @@ for line in open(path).read().split('\n'):
 fail = 0
 for b in blocks:
     while b['out'] and b['out'][-1] == '': b['out'].pop()
-    want = '\n'.join(b['out']).replace('{TV}', f'Ram Disk:cut{S}').replace('{T}', f'RAM:cut{S}')
-    b['cmd'] = b['cmd'].replace('{T}', f'RAM:cut{S}')
+    want = '\n'.join(b['out']).replace('{TV}', f'Ram Disk:cut{S}').replace('{T}', f'RAM:cut{S}').replace('{S}', S)
+    b['cmd'] = b['cmd'].replace('{T}', f'RAM:cut{S}').replace('{S}', S)
     script = f'FailAt 21\nCD RAM:cut{S}\nPath RAM:cu{S} ADD HEAD\n' + b['cmd'] + f'\nSetEnv curc{S} $RC\n'
     open(f'/tmp/cutest{S}.script', 'w').write(script)
     subprocess.run([w, 'put', f'/tmp/cutest{S}.script', f'RAM:cutest{S}.script'], capture_output=True)

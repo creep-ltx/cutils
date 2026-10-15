@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# w030 - wasabi to the 68030/32 MB FS-UAE (tests/uae030.sh, port 1241)
+WASABI_HOST=127.0.0.1 WASABI_PORT=1241 exec wasabi "$@"

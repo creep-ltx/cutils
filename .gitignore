@@ -6,3 +6,4 @@ tests/cz-pc/pc
 tests/cz-pc/pc-asan
 tests/cz-pc/am
 tests/cz-pc/czt-am.o
+third_party/AmiSSL/
