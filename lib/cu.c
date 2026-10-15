@@ -71,7 +71,11 @@ void cu_putnum(LONG v, int width)
 
 /* ---- messages ---- */
 
-static BPTR errout(void)
+/* noinline: inlined into errput, bebbo's gcc (-Os) kept SysBase in a6 from
+ * FindTask() and called Write() on it whenever pr_CES was set, so every
+ * message to a redirected error stream (*> in the Shell, 2> in csh) was
+ * lost (found by wget -o, 2026-10-15; seen in objdump of errput) */
+static BPTR __attribute__((noinline)) errout(void)
 {
     struct Process *me = (struct Process *)FindTask(NULL);
     return me->pr_CES ? me->pr_CES : Output();

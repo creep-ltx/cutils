@@ -8,7 +8,7 @@ AMIGA   = $(HOME)/opt/amiga
 CC      = $(AMIGA)/bin/m68k-amigaos-gcc
 CFLAGS  = -Os -m68020 -noixemul -resident32 -fomit-frame-pointer -fno-common -fbbb=- -Wall -Wno-pointer-sign -Ilib
 LDFLAGS = -m68020 -noixemul -resident32 -s
-CMDS    = cat head tail wc grep tee cp mv rm mkdir touch ls find du df sort uniq cut tr xargs diff which date basename dirname seq file stat ln chmod man ps kill free uptime top tar gzip gunzip bzip2 bunzip2 unxz unzstd sed
+CMDS    = cat head tail wc grep tee cp mv rm mkdir touch ls find du df sort uniq cut tr xargs diff which date basename dirname seq file stat ln chmod man ps kill free uptime top tar gzip gunzip bzip2 bunzip2 unxz unzstd sed wget
 LIB     = build/libcu.a
 LIBOBJ  = build/cu.o build/cu_each.o build/cu_in.o build/cu_tree.o build/cu_walk.o build/cu_colours.o build/regex.o build/cu_lines.o build/cu_date.o build/cu_prot.o build/tui.o build/cu_tasks.o build/cu_long.o \
           $(CZOBJ) $(TPOBJ)
@@ -75,6 +75,27 @@ $(LIB): $(LIBOBJ)
 bin/%: build/cmd_%.o $(LIB)
 	@mkdir -p bin
 	$(CC) $(LDFLAGS) $< $(LIB) -o $@
+	chmod +x $@
+
+# wget: its https part (src/wget_tls.c) on AmiSSL 5's headers, fetched into
+# third_party/AmiSSL by third_party/fetch-amissl.sh; AmiSSL itself is opened
+# at run time (the inline calls need no link library)
+AMISSL  = third_party/AmiSSL/Developer
+
+$(AMISSL)/include:
+	third_party/fetch-amissl.sh
+
+build/wget_tls.o: src/wget_tls.c src/wget.h | $(AMISSL)/include
+	@mkdir -p build
+	$(CC) $(CFLAGS) -I$(AMISSL)/include -c $< -o $@
+
+build/cmd_wget.o: src/wget.c src/wget.h lib/cu.h
+	@mkdir -p build
+	$(CC) $(CFLAGS) -c $< -o $@
+
+bin/wget: build/cmd_wget.o build/wget_tls.o $(LIB)
+	@mkdir -p bin
+	$(CC) $(LDFLAGS) $^ -o $@
 	chmod +x $@
 
 test: all

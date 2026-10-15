@@ -38,6 +38,8 @@ this replaces them.
   top 0.1b1 (2026-10-15, FS-UAE only): the classic top in the terminal (lib/tui.c); CPU% by
   sampling SysBase->ThisTask from a vertical-blank interrupt server (asm, the ring in is_Data,
   removed on every exit); its header comment and man page have the method's limits.
+  wget 0.1b1 (2026-10-15, FS-UAE only): 43 commands, 1405 cases green (wget.t 67 on both
+  emulators, wget-https.t 19 on the 030 one: `tests/wgettest.sh`).
 - Added 2026-10-14, tested in FS-UAE only (not yet on the A1200): diff, which, date,
   basename, dirname, seq, file, stat, ln, chmod. `which` and `date` replace C:Which and
   C:Date (see the rule below); installing them means keeping the originals aside.
@@ -119,6 +121,18 @@ this replaces them.
 - `tests/sed-pc/` - sed.c built for Linux (cu.h/shim.c stand in for lib/ and dos), run.sh
   compares it with GNU sed and the real bin/sed under vamos with it; stack.sh runs deep
   patterns on a 4 KB stack; one.sh shows one run three ways.
+- `src/wget.c` + `src/wget_tls.c` (https on AmiSSL 5, in its own file so the SDK's headers
+  stay out of the rest; AmiSSL is opened at run time, only for https; no link library). The
+  SDK's headers: `third_party/fetch-amissl.sh` downloads them into third_party/AmiSSL (ignored
+  by git, make runs it). Tests: `tests/wgettest.sh` starts `tests/httpd.py` (http 8471, https
+  8472), runs wget.t, checks the 3 MB downloads byte for byte on the PC, then wget-https.t on a
+  second emulator: AmiSSL needs ~4 MB of free fast RAM, more than the shared 8 MB machine has
+  beside the other sessions' tests: `tests/uae030.sh start` (68030, 32 MB, port 1241,
+  `tests/w030`; `FAST=1` for the emulator at full speed).
+- **A miscompile in lib/cu.c, fixed 2026-10-15**: with errout() inlined, gcc called Write()
+  with SysBase in a6 whenever pr_CES was set, so every cu_err message to a redirected error
+  stream (`*>` in the Shell, `2>` in csh, wget -o) vanished. errout() is noinline now; check
+  with `m68k-amigaos-objdump -dr build/cu.o` that errput loads _DOSBase before Write.
 - `src/NAME.c` - one command each, `$VER: NAME 0.1bN (date)`.
 
 ## Small mismatches to tidy (found writing the man pages, 2026-10-14)

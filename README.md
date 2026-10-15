@@ -47,6 +47,7 @@ know, one small pure program each, made for `C:` and for csh pipes.
 | unzstd | unpack zstd: frames, skippable frames, checksums; keeps the .zst unless --rm; -c -k -f -t -l -r -v -q -S | 0.1b1, tested in FS-UAE |
 | uptime | time since the last start (the E-clock), Shells open; -p -s | 0.1b1, tested in FS-UAE |
 | wc   | lines, words, bytes; -l -w -c -L | 0.1b1, tested in FS-UAE |
+| wget | fetch files over http and https (AmiSSL 5, opened only for https; certificates checked against AmiSSL:Certs): redirects, chunked, retries that go on where they stopped, a progress line that fits the window, Ctrl-C keeps the part; -O -P -c -nc -q -nv -S -t -T -U --header -i -o --spider --content-disposition --no-check-certificate | 0.1b1, tested in FS-UAE (also aminet.net and google.com over https) |
 | which | replaces C:Which: the same output and template (NORES RES ALL), and Unix which [-a] | 0.1b1, tested in FS-UAE |
 | xargs | commands built from the input's words; -n -L -I -s -t -0, never runs with no words | 0.1b1, tested in FS-UAE |
 
