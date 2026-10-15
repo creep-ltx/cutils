@@ -8,6 +8,13 @@ this replaces them.
 
 ## Start here (a later session)
 
+**State 2026-10-15: 45 commands, all installed on the A1200** (C: and HELP:Man/english/CUtils,
+every binary refreshed for the errout() fix); 45 test files green on FS-UAE port 1240 plus
+wget-https.t on the 32 MB one (tests/uae030.sh). Next ideas (the user's list, 2026-10-15): use it a
+while, then an installer + Aminet release, man pages for the rest of the family, the small
+mismatch list below, xz/zstd packing, FileColours in Ahiru/Maki; later btop, awk, an archive
+manager.
+
 - Build: `make` (bebbo's gcc in `~/opt/amiga`), binaries in `bin/`.
 - Test: start the private FS-UAE (`~/Projects/CTerm/tests/files/uae.sh start`, port
   1240), then `tests/run.sh [name...]`. Cases are `tests/cases/NAME.t` (format in
