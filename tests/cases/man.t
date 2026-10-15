@@ -87,3 +87,13 @@ $ man -x
 man: -x: unknown option
 ? 10
 $ Assign MAN: REMOVE
+$ man -l thash.md
+NAME
+    hang - a test page
+
+DESCRIPTION
+    #?.c files are C sources. #x too.
+
+    A normal paragraph.
+$ man -l tlong.md | tail -n 1
+    After it.

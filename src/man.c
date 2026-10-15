@@ -39,7 +39,7 @@
 #include <utility/tagitem.h>
 
 const char *cu_name = "man";
-static const char version[] = "$VER: man 0.1b2 (14.10.2026)";
+static const char version[] = "$VER: man 0.1b3 (15.10.2026)";
 
 struct LocaleBase *LocaleBase;
 
@@ -437,15 +437,26 @@ static void render_man(Lines *src)
         /* a paragraph: lines joined until a blank, an indented line or a mark */
         plen = 0;
         para[0] = 0;
+        {
+        int from = i;
         while (i < src->n) {
             char *l = src->l[i];
             int k = indentof(l);
-            if (k < 0 || k >= 4 || (l[0] == '#') || (l[0] == '-' && l[1] == ' ')) break;
+            /* a heading (# or ## and a space) ends it - a line like "#?.c ..."
+             * is text: stopping at any # left such a line unread for ever */
+            if (k < 0 || k >= 4 || (l[0] == '#' && (l[1] == ' ' || (l[1] == '#' && l[2] == ' '))) ||
+                (l[0] == '-' && l[1] == ' ')) break;
             if (plen && plen < (int)sizeof para - 1) para[plen++] = ' ';
             if (plen + strlen(l + k) >= sizeof para) break;
             strcpy(para + plen, l + k);
             plen += strlen(l + k);
             i++;
+        }
+        if (i == from) {                 /* nothing taken (a line too long): its start, and on */
+            strncpy(para, src->l[i], sizeof para - 1);
+            para[sizeof para - 1] = 0;
+            i++;
+        }
         }
         inline_(para, t, sizeof t);
         olen = ocol = 0;
