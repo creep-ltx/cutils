@@ -10,8 +10,8 @@ $ rm -rf tz
 $ MakeDir tz
 $ touch tz/new
 ? 0
-$ List tz/new LFORMAT "%N %L %D|"
-new empty Today    |
+$ List tz/new LFORMAT "%N %L %D|" | sed "s/ *|/|/"
+new empty Today|
 $ touch -c tz/none
 ? 0
 $ rm tz/none
@@ -21,8 +21,8 @@ $ Echo >tz/old "keep"
 $ SetDate tz/old 02-Jan-20 13:14:15
 $ touch tz/old
 ? 0
-$ List tz/old LFORMAT "%N %L %D|"
-old 5 Today    |
+$ List tz/old LFORMAT "%N %L %D|" | sed "s/ *|/|/"
+old 5 Today|
 $ Type tz/old
 keep
 $ touch -d 2020-02-29 tz/old
@@ -31,10 +31,10 @@ $ List tz/old LFORMAT "%N %D %T"
 old 29-Feb-20 00:00:00
 $ touch -d "1999-12-31 23:59:58" tz/old tz/new2
 ? 0
-$ List tz LFORMAT "%N %L %D|"
+$ List tz LFORMAT "%N %L %D|" | sed "s/ *|/|/"
 new2 empty 31-Dec-99|
 old 5 31-Dec-99|
-new empty Today    |
+new empty Today|
 $ touch -d 2025-10-14T08:05 -c tz/old
 ? 0
 $ List tz/old LFORMAT "%D %T"

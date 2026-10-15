@@ -151,7 +151,7 @@ manager.
   by git, make runs it). Tests: `tests/wgettest.sh` starts `tests/httpd.py` (http 8471, https
   8472), runs wget.t, checks the 3 MB downloads byte for byte on the PC, then wget-https.t on a
   second emulator: AmiSSL needs ~4 MB of free fast RAM, more than the shared 8 MB machine has
-  beside the other sessions' tests: `tests/uae030.sh start` (68030, 32 MB, port 1241,
+  beside the other sessions' tests: `tests/uae030.sh start` (68030, 32 MB, port 1247,
   `tests/w030`; `FAST=1` for the emulator at full speed).
 - **A miscompile in lib/cu.c, fixed 2026-10-15**: with errout() inlined, gcc called Write()
   with SysBase in a6 whenever pr_CES was set, so every cu_err message to a redirected error

@@ -41,8 +41,8 @@ soft link lz/dangling -> nofile
 $ ln -s S:Startup-Sequence lz/ss
 $ stat -c %N lz/ss
 lz/ss -> S:Startup-Sequence
-$ wc -c lz/ss
-51 lz/ss
+$ diff lz/ss S:Startup-Sequence
+? 0
 $ ln S:Startup-Sequence lz/x
 ln: lz/x: a hard link cannot go to another volume (ln -s makes a soft one)
 ? 10
