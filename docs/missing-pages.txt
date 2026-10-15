@@ -1,58 +1,9 @@
-AddUSBClasses
-AddUSBHardware
-Ahiru
-ARJ
-Birdie
-cfile
-conbench
-csh
-cshell
-CTerm
-diskwatch
-DMS
-DMSDescript
-DRadioTool
-Emu68Info
-FbxDismount
-lha
-lspci
-lzx
-Markdown
-mdns
-netdev-stats
-netinfo
-NFSDismount
-NoClick
-PdaTransfer
-PencamTool
-ping
-PowManTool
-PsdDevLister
-PsdErrorlog
-PsdLoadModule
-PsdRestart
-PsdStackLoader
-readbench
-RocketTool
-Sashimi
-SFSconfig
-SFSdefrag
-SFSformat
-SFSobject
-SFSquery
-SGrab
-SonixcamTool
-StackAttack
-Sumi
-TankMouse.driver
-UnARJ
-unlzx
-unrar
-UnZIP
-UPSTool
-VisualPrefs
-wasabid
-whichamiga
-ZIP
-ZIPInfo
-ZOO
+# Every C: command on the A1200 has a man page (2026-10-15)
+
+The list that was here (59 commands without a page) is done: our own programs in
+man/english/{CShell,CTerm,Sumi,Maki,Ahiru,CFile,Markdown,Wasabi,AmigaTools,exFAT}, the
+others written fresh in man/english/{Archivers,Poseidon,SFS,Network,System}. Checked with
+`man -w` for every file in C: (cfile.config is a settings file, in cfile.md).
+
+Not on the path, so not checked: programs in Work:Utils (AmiClaude, CygnusEd, SuperDuper,
+iGame...). unrar and ZIPInfo need ixemul.library, which the A1200 does not have.
