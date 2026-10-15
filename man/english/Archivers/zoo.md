@@ -22,12 +22,12 @@ also whole words with a dash (`zoo -extract archive`).
   comment for each file, **C** for the archive, **:** store names
   without paths, **P** pack the archive afterwards, **I** read the
   names from the input, **+** keep generations.
-- **x** extract files (**e** is the same). Modifiers: **:** into the
-  current drawer, ignoring paths, **/** with paths (the default), **//** making drawers
-  as needed, **.** make absolute paths relative, **O** overwrite
-  without asking (**OO** read-only files too), **S** overwrite newer
-  files, **N** extract to nowhere (a test: `zoo xN`), **p** to the
-  output, **d** also deleted files (**dd** only those), **q** quiet.
+- **x** extract files (**e** is the same). Modifiers: **:** into the current
+  drawer, ignoring paths, **/** with paths (the default), **//** making
+  drawers as needed, **.** make absolute paths relative, **O** overwrite
+  without asking (**OO** read-only files too), **S** overwrite newer files,
+  **N** extract to nowhere (a test: `zoo xN`), **p** to the output, **d**
+  also deleted files (**dd** only those), **q** quiet.
 - **l** list the archive; **L** several archives; **v** in detail with
   the archive comment; **V** with file comments too. Modifiers: **C**
   show the CRC, **a** the archive name, **m** file modes, **d** deleted
