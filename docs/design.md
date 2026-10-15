@@ -59,9 +59,12 @@ manager.
   leftmost-longest), RE_MULTILINE, \b \B \< \> \` \'; fixed there: a search gave up when
   nothing could start at one place (`$` alone, `\bfoo`), {n,m} over 100 is an error (was a
   plain {), and the {n,m} copy is on the heap (nested groups overflowed a 4 KB stack).
-  top 0.1b1 (2026-10-15, FS-UAE only): the classic top in the terminal (lib/tui.c); CPU% by
-  sampling SysBase->ThisTask from a vertical-blank interrupt server (asm, the ring in is_Data,
-  removed on every exit); its header comment and man page have the method's limits.
+  top 0.1b2 (2026-10-16, on the A1200 as C:top, C:top-0.1b1.bak kept): the classic top in the
+  terminal (lib/tui.c); CPU% and TIME+ exact through exec's tc_Launch/tc_Switch hooks on every
+  task (an EClock time per switch; probe experiments/exectap.c, Knowledge amiga/task-cpu-time.md),
+  one top at a time (semaphore "CUtils top hooks"); the vertical-blank sampler (asm, ring in
+  is_Data) paces the refreshes and covers tasks with hooks of their own and a second top.
+  top.t 28 cases on 3.2.1; checked by hand on 3.1 and the A1200.
   wget 0.1b1 (2026-10-15, FS-UAE only): 43 commands, 1405 cases green (wget.t 67 on both
   emulators, wget-https.t 19 on the 030 one: `tests/wgettest.sh`).
 - Added 2026-10-14, tested in FS-UAE only (not yet on the A1200): diff, which, date,

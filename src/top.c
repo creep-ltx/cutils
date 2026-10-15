@@ -14,8 +14,9 @@
  *   Fast: ... total, used, free, largest
  * then every task: CLI (the Shell's number), ADDRESS, PRI, STATE (run,
  * ready, wait), CPU% (its share of the processor over the interval),
- * STACK (its size), FREE (the stack still free), COMMAND (what the Shell
- * runs now, else [the task's name], as ps shows it).
+ * TIME+ (its processor time since top started), STACK (its size), FREE
+ * (the stack still free), COMMAND (what the Shell runs now, else [the
+ * task's name], as ps shows it).
  *
  *   -b batch: plain text, no keys (also when the output is not a window:
  *      a file or a pipe)   -d SECONDS between refreshes (1; tenths too:
@@ -29,20 +30,20 @@
  * Ctrl-C quit.
  *
  * How CPU% is measured: the Amiga keeps no account of the time each task
- * uses, so top samples. An interrupt server on the vertical blank (50
- * times a second, 60 on NTSC) notes which task is running into a ring;
- * at each refresh a task's share is its samples out of all. When the
- * processor is idle the last task that ran is still SysBase->ThisTask,
- * but no longer in the running state: those samples count as idle. 50
- * samples a second is coarse: a task must run a while to show, short
- * bursts are missed or counted whole, and a task that ended within the
- * interval is not listed (its samples stay in the total).
+ * uses, so top asks Exec to call it at every task switch (the tc_Launch /
+ * tc_Switch hooks, below) and notes the EClock time: CPU% and TIME+ (the
+ * time since top started) are exact. A task with hooks of its own, and
+ * every task in a second top while the first holds the hooks, is sampled
+ * instead: an interrupt server on the vertical blank (50 times a second)
+ * notes the running task, and a task's share is its samples out of all
+ * (its TIME+ is -). The sampler also paces the refreshes.
  *
  * Return code 0, 10 bad arguments, 20 Ctrl-C in batch mode, no memory,
  * no timer.device, or the terminal could not be opened. */
 #include <stdlib.h>
 #include <exec/execbase.h>
 #include <exec/interrupts.h>
+#include <exec/semaphores.h>
 #include <hardware/intbits.h>
 #include <devices/timer.h>
 #include <libraries/configvars.h>
@@ -52,7 +53,7 @@
 #include "tui.h"
 
 const char *cu_name = "top";
-static const char version[] = "$VER: top 0.1b1 (15.10.2026)";
+static const char version[] = "$VER: top 0.1b2 (16.10.2026)";
 
 struct Device *TimerBase;
 struct ExpansionBase *ExpansionBase;
@@ -127,6 +128,215 @@ static void sampler_off(void)
     if (ring) { FreeVec(ring); ring = NULL; }
 }
 
+/* ---- exact times: exec's own task hooks ---------------------------------
+ * When TF_LAUNCH / TF_SWITCH are set in a task's tc_Flags, exec calls its
+ * tc_Launch as the task gets the processor and tc_Switch as it loses it
+ * (exec/tasks.h). top sets both on every task, with one pair of hooks
+ * that note ThisTask and an EClock time into a ring: each task's time is
+ * then exact, not sampled (Knowledge amiga/task-cpu-time.md: checked on
+ * 3.1, 3.2.1 and Emu68). New tasks are hooked at every refresh; a task
+ * that already had hooks of its own keeps them and is sampled. Only one
+ * top hooks at a time (the semaphore below): the hooks find the ring
+ * through tap_ptr beside the code, which a second top sharing the code
+ * (Resident) would overwrite; that one samples. */
+#define NEV 8192                 /* events in the ring, 16 bytes each */
+
+typedef struct {
+    struct Device *timer;        /* 0 */
+    volatile ULONG count;        /* 4: events ever written */
+    ULONG pad[6];
+    struct { ULONG task, hi, lo, spare; } ev[NEV];   /* 32: task | 1 = off */
+} Tap;
+typedef char ck_ev[offsetof(Tap, ev) == 32 ? 1 : -1];
+
+/* the hooks keep every register: exec's state then is not documented */
+__asm__(
+    "	.text\n"
+    "	.even\n"
+    "_top_tapptr:	.long 0\n"
+    "	.globl _top_tapwhere\n"
+    "_top_tapwhere:\n"
+    "	lea	_top_tapptr(pc),a0\n"
+    "	move.l	a0,d0\n"
+    "	rts\n"
+    "	.globl _top_tapon\n"
+    "_top_tapon:\n"
+    "	movem.l	d0-d1/a0-a1/a6,-(sp)\n"
+    "	moveq	#0,d1\n"
+    "	bra.s	2f\n"
+    "	.globl _top_tapoff\n"
+    "_top_tapoff:\n"
+    "	movem.l	d0-d1/a0-a1/a6,-(sp)\n"
+    "	moveq	#1,d1\n"
+    "2:	movea.l	_top_tapptr(pc),a1\n"
+    "	move.l	4(a1),d0\n"
+    "	andi.l	#8191,d0\n"
+    "	lsl.l	#4,d0\n"
+    "	lea	32(a1,d0.l),a0\n"
+    "	movea.l	4.w,a6\n"
+    "	move.l	276(a6),d0\n"          /* ThisTask */
+    "	or.l	d1,d0\n"
+    "	move.l	d0,(a0)+\n"
+    "	move.l	a1,-(sp)\n"
+    "	movea.l	(a1),a6\n"             /* TimerBase */
+    "	jsr	-60(a6)\n"             /* ReadEClock(a0) */
+    "	movea.l	(sp)+,a1\n"
+    "	addq.l	#1,4(a1)\n"
+    "	movem.l	(sp)+,d0-d1/a0-a1/a6\n"
+    "	rts\n");
+extern ULONG *top_tapwhere(void);
+extern void top_tapon(void), top_tapoff(void);
+
+#define NACC 512                 /* a hash of the tasks' times, 2 x MAXT */
+typedef struct {
+    APTR addr;                   /* NULL: free */
+    unsigned long long iv;       /* EClock ticks in this interval */
+    unsigned long long sum;      /* since top started: TIME+ */
+} Acc;
+
+static Tap *tap;
+static struct SignalSemaphore *tapsem;
+static Acc acc[NACC], acc2[NACC];
+static APTR foreign[MAXT];       /* tasks with hooks of their own */
+static int nforeign, taplost;
+static ULONG tapread, efreq;
+static APTR cur;                 /* the task the last "on" was for */
+static unsigned long long curstart, lastsnap;
+
+static unsigned long long eclock(void)
+{
+    struct EClockVal ev;
+    efreq = ReadEClock(&ev);
+    return ((unsigned long long)ev.ev_hi << 32) | ev.ev_lo;
+}
+
+static Acc *accfor(Acc *h, APTR a, int add)
+{
+    int i = ((ULONG)a >> 4) & (NACC - 1), n;
+    for (n = 0; n < NACC; n++, i = (i + 1) & (NACC - 1)) {
+        if (h[i].addr == a) return &h[i];
+        if (!h[i].addr) {
+            if (!add) return NULL;
+            h[i].addr = a;
+            h[i].iv = h[i].sum = 0;
+            return &h[i];
+        }
+    }
+    return NULL;
+}
+
+static void hooklist(struct List *l)
+{
+    struct Node *n;
+    for (n = l->lh_Head; n->ln_Succ; n = n->ln_Succ) {
+        struct Task *t = (struct Task *)n;
+        if ((APTR)t->tc_Launch == (APTR)top_tapon) continue;
+        if (t->tc_Flags & (TF_SWITCH | TF_LAUNCH)) { if (nforeign < MAXT) foreign[nforeign++] = t; continue; }
+        t->tc_Switch = (APTR)top_tapoff;
+        t->tc_Launch = (APTR)top_tapon;
+        t->tc_Flags |= TF_SWITCH | TF_LAUNCH;
+    }
+}
+
+static void unhooklist(struct List *l)
+{
+    struct Node *n;
+    for (n = l->lh_Head; n->ln_Succ; n = n->ln_Succ) {
+        struct Task *t = (struct Task *)n;
+        if ((APTR)t->tc_Launch == (APTR)top_tapon) {
+            t->tc_Flags &= ~(TF_SWITCH | TF_LAUNCH);
+            t->tc_Switch = t->tc_Launch = NULL;
+        }
+    }
+}
+
+/* every task not hooked yet; top itself runs now, so it is "on" */
+static void hookall(void)
+{
+    struct Task *me = SysBase->ThisTask;
+    nforeign = 0;
+    Disable();
+    hooklist(&SysBase->TaskReady);
+    hooklist(&SysBase->TaskWait);
+    /* ThisTask is in neither list */
+    if ((APTR)me->tc_Launch != (APTR)top_tapon) {
+        if (me->tc_Flags & (TF_SWITCH | TF_LAUNCH)) { if (nforeign < MAXT) foreign[nforeign++] = me; }
+        else {
+            me->tc_Switch = (APTR)top_tapoff;
+            me->tc_Launch = (APTR)top_tapon;
+            me->tc_Flags |= TF_SWITCH | TF_LAUNCH;
+        }
+    }
+    Enable();
+}
+
+static int tap_on(void)
+{
+    struct SignalSemaphore *s;
+    if (!(tap = AllocVec(sizeof *tap, MEMF_PUBLIC | MEMF_CLEAR))) return 0;
+    if (!(s = AllocVec(sizeof *s + 16, MEMF_PUBLIC | MEMF_CLEAR))) { FreeVec(tap); tap = NULL; return 0; }
+    strcpy((char *)(s + 1), "CUtils top hooks");
+    s->ss_Link.ln_Name = (char *)(s + 1);
+    s->ss_Link.ln_Pri = -128;
+    Forbid();
+    if (FindSemaphore((STRPTR)"CUtils top hooks")) { Permit(); FreeVec(s); FreeVec(tap); tap = NULL; return 0; }
+    AddSemaphore(s);
+    Permit();
+    tapsem = s;
+    tap->timer = TimerBase;
+    *top_tapwhere() = (ULONG)tap;
+    CacheClearU();
+    lastsnap = curstart = eclock();
+    cur = SysBase->ThisTask;
+    tapread = 0;
+    hookall();
+    return 1;
+}
+
+static void tap_off(void)
+{
+    if (!tap) return;
+    Disable();
+    unhooklist(&SysBase->TaskReady);
+    unhooklist(&SysBase->TaskWait);
+    {
+        struct Task *me = SysBase->ThisTask;
+        if ((APTR)me->tc_Launch == (APTR)top_tapon) {
+            me->tc_Flags &= ~(TF_SWITCH | TF_LAUNCH);
+            me->tc_Switch = me->tc_Launch = NULL;
+        }
+    }
+    Enable();
+    /* no hook can be running now: exec calls them only while switching */
+    FreeVec(tap);
+    tap = NULL;
+    RemSemaphore(tapsem);
+    FreeVec(tapsem);
+    tapsem = NULL;
+}
+
+/* the events since the last call into the tasks' times */
+static void tap_drain(void)
+{
+    ULONG n;
+    if (!tap) return;
+    n = tap->count;
+    if (n - tapread > NEV) { taplost = 1; tapread = n - NEV; cur = NULL; }
+    while (tapread != n) {
+        ULONG *e = &tap->ev[tapread++ & (NEV - 1)].task;
+        unsigned long long t = ((unsigned long long)e[1] << 32) | e[2];
+        APTR tk = (APTR)(e[0] & ~1UL);
+        if (!(e[0] & 1)) { cur = tk; curstart = t; }
+        else {
+            if (cur == tk && t >= curstart) {
+                Acc *a = accfor(acc, tk, 1);
+                if (a) { a->iv += t - curstart; a->sum += t - curstart; }
+            }
+            cur = NULL;
+        }
+    }
+}
+
 /* ---- Emu68 (PiStorm): 68k instructions per second ---------------------
  * Its counters are custom MOVEC registers, an illegal instruction on a
  * real 68k: only after Emu68's devicetree board is found. */
@@ -180,12 +390,15 @@ typedef struct {
     const char *key;             /* for sorting by name: without [ or a path */
     ULONG samples;
     int pct;                     /* tenths of a percent */
+    int timed;                   /* time is exact (else CPU% is sampled) */
+    unsigned long long time;     /* EClock ticks since top started */
 } Row;
 
 static CuTask tasks[MAXT];
 static Row base[MAXT], rows[MAXT];   /* every task; those shown, sorted */
 static int ntasks, nrows;
 static ULONG total, idle;        /* samples in the interval */
+static int exact = -1;           /* busy tenths of a percent, exact; -1 none */
 static int o_name, o_shells, sortkey = 'P';
 static char names[MAXT][76];
 
@@ -218,6 +431,39 @@ static int bysort(const void *a, const void *b)
     return stricmp(x->key, y->key);
 }
 
+/* the hooks' times since the last refresh into CPU% and TIME+ */
+static void exact_times(void)
+{
+    unsigned long long now, wall, busy = 0;
+    int i, k;
+    tap_drain();
+    now = eclock();
+    if (cur) {                   /* running now: top itself */
+        Acc *a = accfor(acc, cur, 1);
+        if (a) { a->iv += now - curstart; a->sum += now - curstart; }
+        curstart = now;
+    }
+    wall = now - lastsnap;
+    lastsnap = now;
+    for (i = 0; i < NACC; i++) if (acc[i].addr) busy += acc[i].iv;
+    exact = wall ? (int)((busy * 1000 + wall / 2) / wall) : 0;
+    if (exact > 1000) exact = 1000;
+    memset(acc2, 0, sizeof acc2);
+    for (k = 0; k < ntasks; k++) {
+        Acc *a = accfor(acc, base[k].t->addr, 0), *b;
+        for (i = 0; i < nforeign; i++) if (foreign[i] == base[k].t->addr) break;
+        if (i < nforeign) continue;          /* its own hooks: sampled */
+        base[k].timed = 1;
+        if (!a) continue;
+        base[k].time = a->sum;
+        base[k].pct = wall ? (int)((a->iv * 1000 + wall / 2) / wall) : 0;
+        if (base[k].pct > 1000) base[k].pct = 1000;
+        if ((b = accfor(acc2, a->addr, 1))) b->sum = a->sum;   /* tasks gone are dropped */
+    }
+    memcpy(acc, acc2, sizeof acc);
+    hookall();                   /* the tasks started since */
+}
+
 /* the tasks now, and the samples since the last refresh shared out */
 static void snapshot(void)
 {
@@ -235,7 +481,12 @@ static void snapshot(void)
         for (k = 0; k < ntasks; k++) if (tasks[k].addr == a) { base[k].samples++; break; }
     }
     last = end;
-    for (k = 0; k < ntasks; k++) base[k].pct = total ? (int)((base[k].samples * 1000 + total / 2) / total) : 0;
+    for (k = 0; k < ntasks; k++) {
+        base[k].pct = total ? (int)((base[k].samples * 1000 + total / 2) / total) : 0;
+        base[k].timed = 0;
+        base[k].time = 0;
+    }
+    if (tap) exact_times();
     emu68_measure();
 }
 
@@ -324,7 +575,8 @@ static void line_cpu(void)
 {
     Ln = 0;
     ls("%Cpu: ");
-    if (!total) ls("measuring");
+    if (exact >= 0) { lpct(exact, 0); ls(" busy, "); lpct(1000 - exact, 0); ls(" idle"); }
+    else if (!total) ls("measuring");
     else {
         int busy = (int)(((total - idle) * 1000 + total / 2) / total);
         lpct(busy, 0); ls(" busy, "); lpct(1000 - busy, 0); ls(" idle");
@@ -348,7 +600,19 @@ static void line_titles(void)
 {
     Ln = 0;
     ls("CLI "); lpad("ADDRESS", 8); ls("  PRI "); lpad("STATE", 5);
-    ls("  CPU%  STACK   FREE COMMAND");
+    ls("  CPU%    TIME+  STACK   FREE COMMAND");
+}
+
+/* TIME+: minutes:seconds.hundredths, as Unix top (over 99 minutes no
+ * hundredths); - when the task is sampled */
+static void ltime(Row *r)
+{
+    ULONG h, m;
+    if (!r->timed || !efreq) { ls("       -"); return; }
+    h = (ULONG)(r->time * 100 / efreq);
+    m = h / 6000;
+    if (m < 100) { lnum(m, 2); lc(':'); ltwo(h / 100 % 60); lc('.'); ltwo(h % 100); }
+    else { lnum(m, 5); lc(':'); ltwo(h / 100 % 60); }
 }
 
 static void line_row(Row *r)
@@ -364,6 +628,8 @@ static void line_row(Row *r)
     lpad(t->state == 0 ? "run" : t->state == 1 ? "ready" : "wait", 5);
     lc(' ');
     lpct(r->pct, 5);
+    lc(' ');
+    ltime(r);
     lc(' ');
     lnum(t->stack, 6);
     lc(' ');
@@ -395,6 +661,7 @@ static int sleepto(ULONG target)
     while ((LONG)(target - ring->count) > 0) {
         if (cu_break()) return 0;
         Delay(2);
+        tap_drain();
     }
     return 1;
 }
@@ -489,7 +756,7 @@ static void draw(const char *prompt)
 }
 
 static const char *const helptext[] = {
-    "top 0.1b1 - the tasks that use the processor",
+    "top 0.1b2 - the tasks that use the processor",
     "",
     "  P          sort by CPU% (the default)",
     "  M          sort by stack size",
@@ -504,8 +771,8 @@ static const char *const helptext[] = {
     "  h          this help",
     "  q Esc      quit (Ctrl-C too)",
     "",
-    "CPU% is sampled 50 times a second (the vertical blank):",
-    "short bursts are missed or counted whole.",
+    "CPU% and TIME+ are exact: exec tells top each time a task",
+    "gets and loses the processor. TIME+ counts from top's start.",
     "",
     "Any key goes back.",
     NULL
@@ -626,6 +893,8 @@ static int interactive(int count, int delay10)
             next = last + (ULONG)delay10 * hz / 10;
             continue;
         }
+        if (left > hz / 2) left = hz / 2;    /* the hooks' ring read twice a second */
+        tap_drain();
         if (!tui_wait(&e, left * (1000000 / hz), 0, NULL)) continue;
         if (e.type == TE_RESIZE) { tui_resized(); keepsel(); draw(NULL); continue; }
         if (e.type == TE_MOUSE) {
@@ -701,6 +970,7 @@ int main(void)
     TimerBase = tr->tr_node.io_Device;
     if (!sampler_on()) cu_err(20, NULL, "no memory");
     else {
+        tap_on();                /* else everything is sampled */
         emu68_probe();
         if (o_batch) batch(count, delay10, cols);
         else if (!tui_open()) cu_err(20, NULL, "can not open the terminal");
@@ -708,6 +978,7 @@ int main(void)
             interactive(count, delay10);
             tui_close();
         }
+        tap_off();
         sampler_off();
     }
     CloseDevice((struct IORequest *)tr);

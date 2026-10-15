@@ -26,6 +26,8 @@ Below that, every task on the machine, the busiest first:
     STATE     run (top itself), ready (waiting for the processor) or
               wait (waiting for something to happen)
     CPU%      its share of the processor over the last interval
+    TIME+     the processor time it has used since top started, in
+              minutes:seconds.hundredths (- when it is sampled)
     STACK     the size of its stack
     FREE      how much of the stack is still free (? when unknown)
     COMMAND   the command the Shell runs now, or [the task's name]
@@ -72,27 +74,29 @@ window changes size, the list follows.
 timer.device, or the window could not be used as a terminal.
 
 ## NOTES
-The Amiga keeps no account of the time each task uses, so top samples.
-A small interrupt server runs on the vertical blank, 50 times a second
-(60 on NTSC), and notes which task is running at that moment. At each
-refresh a task's CPU% is its samples out of all of them. When nothing
-runs, the processor idles in Exec: the last task that ran is still the
-current one, but no longer in the running state, and those samples
-count as idle.
+The Amiga keeps no account of the time each task uses, but Exec can be
+asked to call a small routine each time a task gets the processor and
+each time it loses it (the TF_LAUNCH and TF_SWITCH task hooks). top sets
+these on every task and notes the time, to 1.4 microseconds, at every
+switch. CPU% and TIME+ are therefore exact, also for short bursts that
+a sampler would miss. Time when no task runs is idle.
 
 What that means:
 
-- With 50 samples a second, one sample is 2% of a one second interval.
-  A task must run a while to show; a short burst is missed, or counted
-  as a whole fiftieth of a second. Longer intervals (`-d 5`) give finer
-  figures.
-- A task that runs only with interrupts off is not seen while they
-  are off.
-- A task that ended within the interval is not listed; its samples
-  still count in the total.
+- A task started while top runs is hooked at the next refresh; until
+  then its time counts as idle.
+- Time spent in interrupts is counted for the task they interrupted.
+- A task that ended within the interval is not listed; its time still
+  counts as busy.
+- A task that already had hooks of its own keeps them, and only one top
+  at a time can use the hooks. Those tasks, and everything in a second
+  top, are sampled instead: a small interrupt server notes the running
+  task 50 times a second (60 on NTSC), so a short burst is missed or
+  counted as a whole fiftieth of a second. Their TIME+ shows -.
 - top itself takes a few percent on a 68020 to draw the list.
 
-The sampler is taken out again whenever top ends, also after Ctrl-C.
+The hooks and the sampler are taken out again whenever top ends, also
+after Ctrl-C.
 
 ## SEE ALSO
 `ps`, `kill`, `free`, `uptime`

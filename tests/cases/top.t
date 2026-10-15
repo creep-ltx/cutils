@@ -9,8 +9,8 @@ $ grep -c -E "^%Cpu: [0-9]+\.[0-9] busy, [0-9]+\.[0-9] idle" RAM:topo
 $ grep -c -E "^(Chip|Fast): [0-9.]+[KMG] total, [0-9.]+[KMG] used, [0-9.]+[KMG] free, [0-9.]+[KMG] largest" RAM:topo
 2
 $ grep "^CLI" RAM:topo
-CLI ADDRESS   PRI STATE  CPU%  STACK   FREE COMMAND
-$ grep -c -E "^ +[0-9]+ [0-9a-f]{8} +-?[0-9]+ run +[0-9]+\.[0-9] +[0-9]+ +[0-9]+ top" RAM:topo
+CLI ADDRESS   PRI STATE  CPU%    TIME+  STACK   FREE COMMAND
+$ grep -c -E "^ +[0-9]+ [0-9a-f]{8} +-?[0-9]+ run +[0-9]+\.[0-9] +[0-9]+:[0-9][0-9]\.[0-9][0-9] +[0-9]+ +[0-9]+ top" RAM:topo
 1
 $ grep -c -E " wait +[0-9]+\.[0-9] " RAM:topo >NIL:
 ? 0
@@ -19,8 +19,18 @@ $ grep -c "\[RAM\]" RAM:topo
 $ Delete RAM:topo QUIET
 $ top -b -n 2 -d 0.2 | grep -c "^Tasks:"
 2
+$ Run >NIL: top -b -n 1 -d 4 >RAM:topo2
+$ Wait 1
+$ top -b -n 1 -d 0.5 | grep -c -E " run +[0-9]+\.[0-9] +- +[0-9]+ +[0-9]+ top"
+1
+$ Wait 4
+$ grep -c -E " run +[0-9]+\.[0-9] +[0-9]+:[0-9][0-9]\.[0-9][0-9] +[0-9]+ +[0-9]+ top" RAM:topo2
+1
+$ top -b -n 1 -d 0.5 | grep -c -E " run +[0-9]+\.[0-9] +[0-9]+:[0-9][0-9]\.[0-9][0-9] +[0-9]+ +[0-9]+ top"
+1
+$ Delete RAM:topo2 QUIET
 $ Run >NIL: seq 1 100000000 >NIL:
-$ top -b -n 1 -d 2 | grep -c -E " (8[0-9]|9[0-9]|100)\.[0-9] +[0-9]+ +[0-9]+ seq"
+$ top -b -n 1 -d 2 | grep -c -E " (8[0-9]|9[0-9]|100)\.[0-9] +0:0[1-9]\.[0-9][0-9] +[0-9]+ +[0-9]+ seq"
 1
 $ top -b -n 1 -d 1 | grep -c -E "^%Cpu: (9[0-9]|100)\.[0-9] busy"
 1
