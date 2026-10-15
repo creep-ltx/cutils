@@ -12,3 +12,4 @@ tests/sed-pc/lsed-asan
 tests/sed-pc/*.o
 tests/sed-pc/__pycache__/
 third_party/AmiSSL/
+experiments/exectap
