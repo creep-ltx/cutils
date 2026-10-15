@@ -8,6 +8,23 @@ this replaces them.
 
 ## Start here (a later session)
 
+**Parallel sessions (set up 2026-10-15, the user's wish):** CTerm, csh and CUtils may each have a
+session running at the same time. Stay in your own repo: CTerm's session owns `~/Projects/CTerm`,
+csh's owns `~/Projects/CShell`, CUtils' owns `~/Projects/CUtils`; a change another one needs is a
+note in its design.md or a message, never an edit there. Shared things:
+- **FS-UAE on port 1240** (`~/Projects/CTerm/tests/files/uae.sh`) is used by all three: work in
+  your own RAM: drawer (CUtils: `S=x tests/run.sh`), never `uae.sh stop`/restart it without
+  asking the others (`ListAgents`, then a message); a crash there - tell the others before restarting.
+- **The A1200** (Wasabi): message the others before installing, rebooting or restarting wasabid;
+  quit test programs and say when the screen is free. Installing in C:/LIBS: needs the user's go.
+- **Ahiru and Maki's FileColours** is on both lists: the csh session does it (in those repos), not CUtils.
+- **Next for CUtils, in this order:** (1) the stale docs (design.md "not yet on the A1200" for
+  the second batch, README.md: "tested in FS-UAE" without "installed", tar's "waits for
+  lib/cz.c"); (2) the small mismatch list below; (3) xz and zstd packing for tar; (4) an installer
+  and the Aminet release (ask the user first: the readme and the version); later btop, awk, an
+  archive manager. sed, top and wget (2026-10-15) were never tried by hand on the A1200: worth a
+  look over Wasabi (wget https needs ~4 MB free fast RAM).
+
 **State 2026-10-15: 45 commands, all installed on the A1200** (C: and HELP:Man/english/CUtils,
 every binary refreshed for the errout() fix); 45 test files green on FS-UAE port 1240 plus
 wget-https.t on the 32 MB one (tests/uae030.sh). Next ideas (the user's list, 2026-10-15): use it a
