@@ -8,6 +8,8 @@ this replaces them.
 
 ## Start here (a later session)
 
+**Open bugs: [TODO.md](../TODO.md)** at the top of the repo. Read it first, fix from the top, add what you find.
+
 **Parallel sessions (set up 2026-10-15, the user's wish):** CTerm, csh and CUtils may each have a
 session running at the same time. Stay in your own repo: CTerm's session owns `~/Projects/CTerm`,
 csh's owns `~/Projects/CShell`, CUtils' owns `~/Projects/CUtils`; a change another one needs is a
@@ -18,9 +20,9 @@ note in its design.md or a message, never an edit there. Shared things:
 - **The A1200** (Wasabi): message the others before installing, rebooting or restarting wasabid;
   quit test programs and say when the screen is free. Installing in C:/LIBS: needs the user's go.
 - **Ahiru and Maki's FileColours** is on both lists: the csh session does it (in those repos), not CUtils.
-- **Next for CUtils, in this order:** (1) the stale docs (design.md "not yet on the A1200" for
-  the second batch, README.md: "tested in FS-UAE" without "installed", tar's "waits for
-  lib/cz.c"); (2) the small mismatch list below; (3) xz and zstd packing for tar; (4) an installer
+- **Next for CUtils, in this order:** (0) the bugs in TODO.md, from the top; (1) the stale docs
+  (design.md "not yet on the A1200" for the second batch; README.md and docs/guide/ were
+  redone 2026-10-16); (2) the small mismatch list below; (3) xz and zstd packing for tar; (4) an installer
   and the Aminet release (ask the user first: the readme and the version); later btop, awk, an
   archive manager. sed, top and wget (2026-10-15) were never tried by hand on the A1200: worth a
   look over Wasabi (wget https needs ~4 MB free fast RAM).
