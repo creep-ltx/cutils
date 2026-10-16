@@ -356,13 +356,11 @@ static ULONG tnum(const UBYTE *p, int w, int *big, int *neg)
     return v;
 }
 
+/* an archive's UTC seconds as the Amiga's local clock (ENV:TZ, else
+ * Locale's offset); before 1978: the Amiga's first day */
 static void seconds2ds(ULONG s, struct DateStamp *ds)
 {
-    if (s < 2922UL * 86400) s = 2922UL * 86400;     /* before 1978: the Amiga's first day */
-    s -= 2922UL * 86400;
-    ds->ds_Days = s / 86400;
-    ds->ds_Minute = s % 86400 / 60;
-    ds->ds_Tick = s % 60 * TICKS_PER_SECOND;
+    cu_fromunix(s, ds);
 }
 
 /* ---- protection ---- */

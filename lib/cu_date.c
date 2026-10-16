@@ -1,7 +1,10 @@
 /* cu_date.c - dates for touch, date, stat, diff (cu.h): the calendar
  * worked out by hand (days since 1.1.1978 both ways), dates read from
- * text, and the English names. dos.library only. */
+ * text, the English names, and the time zone (UTC <-> the Amiga's local
+ * clock). dos.library, and locale.library for the zone when ENV:TZ is unset. */
 #include <dos/datetime.h>
+#include <libraries/locale.h>
+#include <proto/locale.h>
 #include "cu.h"
 
 const char *const cu_months[12] = { "January", "February", "March", "April", "May", "June", "July",
@@ -122,8 +125,126 @@ void cu_isodate(const struct DateStamp *dsin, char *buf)
     buf[i++] = '0' + s / 10; buf[i++] = '0' + s % 10; buf[i] = 0;
 }
 
-/* seconds since 1.1.1970, the Amiga's clock taken as UTC */
+/* ---- the Amiga's time zone (from CTerm's files.c, 0.3b44) ----
+ * The Amiga's clock is local time; Unix seconds (tar, gzip, HTTP) are UTC.
+ * The zone: ENV:TZ when it is set, as POSIX writes it ("CET-1CEST,M3.5.0,
+ * M10.5.0/3": the standard zone's hours west, the summer zone and the
+ * days it starts and ends; "UTC0" none), else Locale's GMT offset
+ * (Prefs/Locale's map; no summer time in it). */
+static int tz_read, tz_has;
+static LONG tz_std, tz_dst;              /* seconds east of UTC */
+static UBYTE tz_m[2], tz_w[2], tz_d[2];  /* Mm.w.d: the start, the end */
+static LONG tz_t[2];                     /* ... at this local time */
+
+static const char *tz_num(const char *p, LONG *v)
+{
+    *v = 0;
+    if (*p < '0' || *p > '9') return NULL;
+    while (*p >= '0' && *p <= '9') *v = *v * 10 + *p++ - '0';
+    return p;
+}
+
+static const char *tz_time(const char *p, LONG *s)   /* [+-]hh[:mm[:ss]] */
+{
+    LONG h, m = 0, x = 0, sg = 1;
+    if (*p == '+' || *p == '-') sg = *p++ == '-' ? -1 : 1;
+    if (!(p = tz_num(p, &h))) return NULL;
+    if (*p == ':' && (p = tz_num(p + 1, &m)) && *p == ':') p = tz_num(p + 1, &x);
+    if (!p) return NULL;
+    *s = sg * (h * 3600 + m * 60 + x);
+    return p;
+}
+
+static const char *tz_name(const char *p)
+{
+    if (*p == '<') { while (*p && *p != '>') p++; return *p ? p + 1 : p; }
+    while ((*p >= 'A' && *p <= 'Z') || (*p >= 'a' && *p <= 'z')) p++;
+    return p;
+}
+
+static const char *tz_rule(const char *p, int i)     /* ",Mm.w.d[/time]" */
+{
+    LONG v;
+    if (*p++ != ',' || *p++ != 'M' || !(p = tz_num(p, &v)) || v < 1 || v > 12) return NULL;
+    tz_m[i] = v;
+    if (*p++ != '.' || !(p = tz_num(p, &v)) || v < 1 || v > 5) return NULL;
+    tz_w[i] = v;
+    if (*p++ != '.' || !(p = tz_num(p, &v)) || v > 6) return NULL;
+    tz_d[i] = v;
+    tz_t[i] = 7200;
+    if (*p == '/' && !(p = tz_time(p + 1, &tz_t[i]))) return NULL;
+    return p;
+}
+
+static void tz_init(void)
+{
+    char v[80];
+    const char *p;
+    LONG s;
+    tz_read = 1;
+    if (GetVar("TZ", v, sizeof v, 0) > 0 && (p = tz_name(v)) != v && (p = tz_time(p, &s))) {
+        tz_std = tz_dst = -s;            /* POSIX counts west */
+        if (*p) {
+            const char *q = tz_name(p);
+            if (q == p) return;
+            tz_dst = tz_std + 3600;
+            if (*q && *q != ',' && (q = tz_time(q, &s))) tz_dst = -s;
+            if (q && (q = tz_rule(q, 0)) && tz_rule(q, 1)) tz_has = 1;
+        }
+        return;
+    }
+    {
+        struct Library *LocaleBase = OpenLibrary("locale.library", 38);
+        struct Locale *l;
+        if (LocaleBase) {
+            if ((l = OpenLocale(NULL))) {
+                tz_std = tz_dst = -l->loc_GMTOffset * 60;   /* minutes west */
+                CloseLocale(l);
+            }
+            CloseLibrary(LocaleBase);
+        }
+    }
+}
+
+/* Mm.w.d of year y: its day, in days since 1970 */
+static LONG tz_day(LONG y, int i)
+{
+    LONG first = cu_days(y, tz_m[i], 1) + 2922;
+    LONG next = (tz_m[i] == 12 ? cu_days(y + 1, 1, 1) : cu_days(y, tz_m[i] + 1, 1)) + 2922;
+    LONG d = first + (tz_d[i] - (first + 4) % 7 + 7) % 7 + (tz_w[i] - 1) * 7;
+    while (d >= next) d -= 7;           /* week 5: the last */
+    return d;
+}
+
+LONG cu_tzeast(ULONG utc)
+{
+    LONG y, m, d, on, off;
+    if (!tz_read) tz_init();
+    if (!tz_has) return tz_std;
+    cu_civil((LONG)(utc / 86400) - 2922, &y, &m, &d);
+    on = tz_day(y, 0) * 86400 + tz_t[0] - tz_std;      /* both in UTC */
+    off = tz_day(y, 1) * 86400 + tz_t[1] - tz_dst;
+    if (on < off ? (LONG)utc >= on && (LONG)utc < off : (LONG)utc >= on || (LONG)utc < off)
+        return tz_dst;
+    return tz_std;
+}
+
+/* seconds since 1.1.1970 UTC of a stamp of the Amiga's (local) clock */
 ULONG cu_unixtime(const struct DateStamp *ds)
 {
-    return ((ULONG)ds->ds_Days + 2922) * 86400 + (ULONG)ds->ds_Minute * 60 + ds->ds_Tick / TICKS_PER_SECOND;
+    ULONG local = ((ULONG)ds->ds_Days + 2922) * 86400 + (ULONG)ds->ds_Minute * 60 + ds->ds_Tick / TICKS_PER_SECOND;
+    LONG e = cu_tzeast(local);
+    e = cu_tzeast(local - e);           /* right also near a summer time change */
+    return local - e;
+}
+
+/* and back: the Amiga's (local) stamp of a UTC time; before 1978 is 1.1.1978 */
+void cu_fromunix(ULONG utc, struct DateStamp *ds)
+{
+    LONG e = cu_tzeast(utc);
+    ULONG s = e < 0 && utc < (ULONG)-e ? 0 : utc + (ULONG)e;    /* unsigned: right past 2038 */
+    ULONG l = s < 2922UL * 86400 ? 0 : s - 2922UL * 86400;
+    ds->ds_Days = l / 86400;
+    ds->ds_Minute = l % 86400 / 60;
+    ds->ds_Tick = l % 60 * TICKS_PER_SECOND;
 }

@@ -9,19 +9,9 @@ How each entry was found: *verified* (made to happen, more than once where it sa
 *seen* (happened once, not yet made to happen again), *suspect* (looks wrong, not checked
 against the right answer).
 
-## Decisions waiting
+## Open bugs
 
-### 1. tar's times are the Amiga clock taken as UTC: a decision to make
-
-*Read 2026-10-16* (man tar, "Dates"): on purpose, "as Amiga tools have always done".
-**The user's call** whether to change it.
-
-- `tar tvzf MyGame.tgz` (made with GNU tar on the PC, files dated 11:34 local time,
-  CEST) shows 09:34. GNU tar shows local time. The Amiga's clock was on local time.
-- Changing it means an offset from GMT both ways (listing, unpacking, creating). The catch
-  (Knowledge amiga/ftp-client.md): locale.library's `loc_GMTOffset` has no summer time and a
-  fresh 3.2.1 says UTC+5; a Unix-style `ENV:TZ` (`CET-1CEST,M3.5.0,M10.5.0/3`) has both.
-  CTerm's FTP client went to local times this way in 0.3b44.
+None known.
 
 ## Docs
 

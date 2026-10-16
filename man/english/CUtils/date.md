@@ -28,7 +28,7 @@ These belong to the Unix form.
   show this date instead of now. Accepts `2026-10-14`,
   `"2026-10-14 13:45"`, `2026-10-14T13:45:10`, `14-Oct-26`, `13:45`
   (today), Today, Yesterday or a weekday, as touch **-d** does.
-- **-u** accepted and ignored: the Amiga keeps no time zones.
+- **-u** accepted and ignored: date shows the Amiga's own (local) clock.
 
 ## AMIGA FORM
 The Amiga template is `DAY,DATE,TIME,TO=VER/K`. Any of DAY, DATE and
@@ -77,7 +77,11 @@ file that could not be read or written. (C:Date returns 20 for a bad
 date; this date returns 10.)
 
 ## NOTES
-`%s` takes the Amiga's clock as UTC.
+`%s` is seconds since 1970 UTC, the Amiga's local clock turned into UTC.
+The Amiga's clock is local time, so the zone comes from **ENV:TZ**
+when it is set, written as Unix does (`SetEnv SAVE TZ CET-1CEST,M3.5.0,M10.5.0/3`:
+Central Europe with its summer time; `UTC0` for none), else from the
+Locale preferences' time zone (which knows no summer time).
 
 `date ?` shows the usage line.
 

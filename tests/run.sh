@@ -39,7 +39,9 @@ for b in blocks:
     while b['out'] and b['out'][-1] == '': b['out'].pop()
     want = '\n'.join(b['out']).replace('{SYS}', os.environ.get('SYSV', '')).replace('{TV}', f'Ram Disk:cut{S}').replace('{T}', f'RAM:cut{S}').replace('{S}', S)
     b['cmd'] = b['cmd'].replace('{SYS}', os.environ.get('SYSV', '')).replace('{T}', f'RAM:cut{S}').replace('{S}', S)
-    script = f'FailAt 21\nCD RAM:cut{S}\nPath RAM:cu{S} ADD HEAD\n' + b['cmd'] + f'\nSetEnv curc{S} $RC\n'
+    # Set TZ UTC0 (a local variable: this Shell only): every case's times as UTC, whatever the
+    # machine's zone; tz.t sets its own
+    script = f'FailAt 21\nCD RAM:cut{S}\nPath RAM:cu{S} ADD HEAD\nSet TZ UTC0\n' + b['cmd'] + f'\nSetEnv curc{S} $RC\n'
     open(f'/tmp/cutest{S}.script', 'w').write(script)
     subprocess.run([w, 'put', f'/tmp/cutest{S}.script', f'RAM:cutest{S}.script'], capture_output=True)
     r = subprocess.run([w, 'run', '--max-time', '60', f'Execute RAM:cutest{S}.script'], capture_output=True, text=True, errors='replace')

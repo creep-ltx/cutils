@@ -20,7 +20,8 @@ AmiSSL 5). A URL without `http://` in front is taken as http. It follows
 redirections (up to 20, also to another server or from http to https),
 takes chunked answers and answers without a length, and sends a
 `user:password@` in the URL as a login (Basic). The file gets the date
-the server gives for it (Last-Modified).
+the server gives for it (Last-Modified), turned from GMT into the
+Amiga's local time (the zone as for date).
 
 Something that goes wrong on the way - a lost connection, a server that
 stays silent for -T seconds, an answer 500 and up - is tried again (3

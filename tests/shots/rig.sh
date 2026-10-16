@@ -20,6 +20,7 @@ if [ "$1" = start ] || [ "$1" = put ]; then
   [ -f "$P" ] || printf 'scrollbar=0\nutf8=1\n' > "$P"
   sed -i -e '/^screen=/d' -e '/^full=/d' -e '/^theme=/d' -e '/^mode=/d' "$P"
   printf 'screen=own8\nfull=1\ntheme=Nord\n' >> "$P"
+  printf 'CET-1CEST,M3.5.0,M10.5.0/3' > "$H/Prefs/Env-Archive/TZ"   # tar's times as on the user's A1200
   bash "$(dirname "$0")/demo.sh" "$H/T/demo"
 fi
 rig "$@"

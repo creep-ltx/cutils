@@ -80,10 +80,12 @@ archive made on the Amiga comes back exactly, and other tars simply
 ignore the keys (GNU tar says "Ignoring unknown extended header
 keyword" once for each; `--warning=no-unknown-keyword` silences it).
 
-**Dates** to the second. The Amiga's clock has no time zone, so it is
-stored as if it were UTC (as Amiga tools have always done): an archive
-from a machine two hours ahead of UTC shows times two hours "in the
-future" on Linux.
+**Dates** to the second, stored as UTC as every tar does, and shown and
+unpacked in local time: an archive made in Stockholm at 11:34 lists as
+11:34 there and as 09:34 in London. The Amiga's clock is local time, so the zone comes from **ENV:TZ**
+when it is set, written as Unix does (`SetEnv SAVE TZ CET-1CEST,M3.5.0,M10.5.0/3`:
+Central Europe with its summer time; `UTC0` for none), else from the
+Locale preferences' time zone (which knows no summer time).
 
 **Names** are stored in UTF-8 and turned back into the Amiga's Latin-1
 when unpacking (a character Latin-1 does not have becomes `_`). Names

@@ -159,7 +159,9 @@ int cu_iscterm(BPTR fh);                   /* the handle is a CTerm console */
  * "14-Oct-26 13:45:10", Today, Yesterday, a weekday (StrToDate); 0 when
  * it is none of them. cu_parsetime(): H:MM[:SS] into ds_Minute/ds_Tick.
  * cu_isodate(): "2026-10-14 18:36:41" into 20 bytes. cu_unixtime():
- * seconds since 1970 (the Amiga's clock taken as UTC). */
+ * seconds since 1970 UTC of the Amiga's (local) clock; cu_fromunix() back.
+ * The zone: ENV:TZ (POSIX, "CET-1CEST,M3.5.0,M10.5.0/3"), else Locale's
+ * GMT offset; cu_tzeast(utc) gives it in seconds east of UTC. */
 extern const char *const cu_months[12];   /* "January" ... */
 extern const char *const cu_wdays[7];     /* "Sunday" ... (ds_Days % 7 == 0 is a Sunday) */
 LONG cu_days(LONG y, LONG m, LONG d);
@@ -169,6 +171,8 @@ int cu_parsetime(const char *p, struct DateStamp *ds);
 int cu_parsedate(const char *s, struct DateStamp *ds);
 void cu_isodate(const struct DateStamp *ds, char *buf);
 ULONG cu_unixtime(const struct DateStamp *ds);
+void cu_fromunix(ULONG utc, struct DateStamp *ds);
+LONG cu_tzeast(ULONG utc);
 void cu_dsfix(struct DateStamp *ds);   /* a stamp after 2046 (negative days from DateStamp()) made right */
 
 /* ---- cu_prot.c ----

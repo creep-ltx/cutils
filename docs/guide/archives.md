@@ -26,6 +26,9 @@ types them:
   squeezed with gzip, bzip2, xz or zstd. The kind is found from the first bytes, never
   from the name, so `tar xf` unpacks any of them.
 - **Creating** makes plain, gzip (`z`) and bzip2 (`j`) archives.
+- **Times** are UTC in the archive, as every tar keeps them, and local time on the Amiga:
+  the zone is `ENV:TZ` (`SetEnv SAVE TZ CET-1CEST,M3.5.0,M10.5.0/3` for Central Europe with
+  summer time), else the Locale preferences' time zone, which knows no summer time.
 - **The Amiga's own** is kept: protection bits, filenotes, soft and hard links (as pax
   `AMIGA.protect` / `AMIGA.comment`, which other tars pass over).
 - **Safe unpacking**: nothing is ever written outside the drawer. Leading `/`, volume

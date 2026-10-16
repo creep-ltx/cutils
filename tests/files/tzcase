@@ -1,0 +1,16 @@
+; tzcase - Executed by cases/tz.t: tar's times in a real zone (Central
+; Europe, with summer time). tar-tz.tar has 12:00 UTC in winter and summer,
+; and 00:30 and 01:30 UTC on 25 Oct 2026, either side of the change (01:00
+; UTC): both are 02:30 local, so unpacked and packed again both come back
+; as 01:30 UTC - the Amiga's clock is local, the hour is there twice.
+Set TZ CET-1CEST,M3.5.0,M10.5.0/3
+tar tvf tar-tz.tar
+rm -rf tzx
+MakeDir tzx
+tar xf tar-tz.tar -C tzx
+stat -c "%n %y %Y" tzx/tz/winter tzx/tz/summer tzx/tz/before tzx/tz/after
+tar cf tzx/back.tar tzx/tz/winter tzx/tz/summer tzx/tz/before tzx/tz/after
+Set TZ UTC0
+tar tvf tzx/back.tar
+stat -c "%n %y %Y" tzx/tz/winter
+rm -rf tzx

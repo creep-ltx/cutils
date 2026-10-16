@@ -633,9 +633,8 @@ static int httpdate(const char *s, struct DateStamp *ds)
     mi = num64(e + 1, 10, &e); if (*e != ':') return 0;
     sec = num64(e + 1, 10, &e);
     if (y < 1978 || d < 1 || d > 31 || h > 23 || mi > 59 || sec > 60) return 0;
-    ds->ds_Days = cu_days(y, m + 1, d);
-    ds->ds_Minute = h * 60 + mi;
-    ds->ds_Tick = sec * 50;
+    /* GMT: the Amiga's clock is local (ENV:TZ, else Locale's offset) */
+    cu_fromunix(((ULONG)cu_days(y, m + 1, d) + 2922) * 86400 + h * 3600 + mi * 60 + (sec > 59 ? 59 : sec), ds);
     return 1;
 }
 

@@ -106,6 +106,12 @@ manager.
   68000 libnix and a crash at start). `--gc-sections` also crashed them: the
   library is an archive instead, so a command links only the parts it uses.
 - **Small**: dos.library and libnix's malloc only; no stdio, no printf.
+- **Times: the Amiga's clock is local, Unix seconds are UTC** (the user's choice, 2026-10-16):
+  cu_unixtime() / cu_fromunix() / cu_tzeast() in lib/cu_date.c (from CTerm's files.c). The
+  zone is ENV:TZ (POSIX, with summer time rules) else Locale's GMT offset (no summer time).
+  Used by tar (list, unpack, create), gzip's header, wget's Last-Modified, date +%s, stat %Y.
+  tests/run.sh sets `Set TZ UTC0` in each case's Shell; tests/cases/tz.t tests Central Europe
+  across the October change (the hour that is there twice comes back as its second time).
 - **Stack: 32 KB of its own** (2026-10-16): `unsigned long __stack = 32768` in lib/cu.c and
   `-Wl,-u,___stkinit` in LDFLAGS make libnix's startup (swapstack.o) swap to a 32 KB stack
   when the Shell gave less (kept when it gave more; Resident works; no memory lost, Avail
