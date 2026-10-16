@@ -1,13 +1,13 @@
 $ which ?
 which [-a] name ...  |  FILE/A,NORES/S,RES/S,ALL/S
 $ which List
-AmigaOS3.2:C/List
+{SYS}C/List
 ? 0
 $ C:Which List
-AmigaOS3.2:C/List
+{SYS}C/List
 ? 0
 $ which list
-AmigaOS3.2:C/List
+{SYS}C/List
 $ which Cd
 INTERNAL Cd
 ? 0
@@ -17,27 +17,27 @@ $ which Assign
 RES Assign
 ? 0
 $ which Assign NORES
-AmigaOS3.2:C/Assign
+{SYS}C/Assign
 $ which Assign RES
 RES Assign
 $ which List RES
 ? 5
 $ which -a List
-AmigaOS3.2:C/List
-AmigaOS3.2:C/List
+{SYS}C/List
+{SYS}C/List
 ? 0
 $ which List ALL
-AmigaOS3.2:C/List
-AmigaOS3.2:C/List
+{SYS}C/List
+{SYS}C/List
 $ which Assign ALL
 RES Assign
-AmigaOS3.2:C/Assign
-AmigaOS3.2:C/Assign
+{SYS}C/Assign
+{SYS}C/Assign
 ? 0
 $ C:Which Assign ALL
 RES Assign
-AmigaOS3.2:C/Assign
-AmigaOS3.2:C/Assign
+{SYS}C/Assign
+{SYS}C/Assign
 ? 0
 $ which Cd ALL
 INTERNAL Cd
@@ -50,17 +50,17 @@ $ which nosuch
 $ C:Which nosuch
 ? 5
 $ which C:
-AmigaOS3.2:C
+{SYS}C
 $ which RAM:
 Ram Disk:
 $ which C:List
-AmigaOS3.2:C/List
+{SYS}C/List
 $ which C:List ALL
-AmigaOS3.2:C/List
+{SYS}C/List
 $ which FILE List
-AmigaOS3.2:C/List
+{SYS}C/List
 $ which FILE=List
-AmigaOS3.2:C/List
+{SYS}C/List
 $ which s:Startup-Sequence
 ? 5
 $ which >NIL: a.txt
@@ -74,13 +74,13 @@ $ which wdir
 ? 5
 $ Delete >NIL: wx wdir
 $ which List Cd nosuch
-AmigaOS3.2:C/List
+{SYS}C/List
 INTERNAL Cd
 ? 5
 $ which -a cd list
 INTERNAL cd
-AmigaOS3.2:C/List
-AmigaOS3.2:C/List
+{SYS}C/List
+{SYS}C/List
 ? 5
 $ which RES NORES List
 ? 5

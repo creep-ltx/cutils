@@ -71,7 +71,7 @@ troff         - a test page in the Unix man format
 $ man -L svenska -w tman
 {TV}/Man/english/Test/tman.md
 $ man -w sort
-AmigaOS3.2:Locale/Help/english/Sys/Commands/sort.help
+{SYS}Locale/Help/english/Sys/Commands/sort.help
 $ man sort | head -n 2
 NAME
         SORT - Alphabetically sorts the lines of a file.

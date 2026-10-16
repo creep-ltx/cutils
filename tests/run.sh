@@ -6,12 +6,15 @@
 #     expected output lines
 #     ? rc                     (optional: the return code it must give)
 # blank lines inside the expected output are kept; a block ends at the next $.
-# {T} is the test drawer, {S} the S= letters (for drawers elsewhere, e.g. SYS:T/cuw{S}).
+# {T} is the test drawer, {SYS} the system volume ("AmigaOS3.2:"), {S} the S= letters (for drawers elsewhere, e.g. SYS:T/cuw{S}).
 # The commands are in RAM:cu/ (first on the path for the run, before C:), tests/files/* in RAM:cut/.
 # S=x: RAM:cux and RAM:cutx instead, so several sessions can test at once.
 # The emulator dead (a crash): tests/uae-restart.sh.
 cd "$(dirname "$0")"; W=${W:-./w}; S=${S:-}; export S
 $W ping >/dev/null || { echo "run.sh: no wasabi (start CTerm/tests/files/uae.sh)"; exit 2; }
+# {SYS} in a case is the machine's system volume ("AmigaOS3.2:"): no volume
+# name is written into a test
+SYSV=$($W run 'Assign SYS: EXISTS' | awk '{print $2}' | tr -d '\r'); export SYSV
 $W run "MakeDir >NIL: RAM:cu$S RAM:cut$S" >/dev/null 2>&1
 for f in ../bin/*; do $W put "$f" "RAM:cu$S/$(basename "$f")" >/dev/null || exit 2; done
 $W run "Protect RAM:cu$S/#? +rep" >/dev/null
@@ -34,8 +37,8 @@ for line in open(path).read().split('\n'):
 fail = 0
 for b in blocks:
     while b['out'] and b['out'][-1] == '': b['out'].pop()
-    want = '\n'.join(b['out']).replace('{TV}', f'Ram Disk:cut{S}').replace('{T}', f'RAM:cut{S}').replace('{S}', S)
-    b['cmd'] = b['cmd'].replace('{T}', f'RAM:cut{S}').replace('{S}', S)
+    want = '\n'.join(b['out']).replace('{SYS}', os.environ.get('SYSV', '')).replace('{TV}', f'Ram Disk:cut{S}').replace('{T}', f'RAM:cut{S}').replace('{S}', S)
+    b['cmd'] = b['cmd'].replace('{SYS}', os.environ.get('SYSV', '')).replace('{T}', f'RAM:cut{S}').replace('{S}', S)
     script = f'FailAt 21\nCD RAM:cut{S}\nPath RAM:cu{S} ADD HEAD\n' + b['cmd'] + f'\nSetEnv curc{S} $RC\n'
     open(f'/tmp/cutest{S}.script', 'w').write(script)
     subprocess.run([w, 'put', f'/tmp/cutest{S}.script', f'RAM:cutest{S}.script'], capture_output=True)
