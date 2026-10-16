@@ -786,7 +786,7 @@ static int columns(void)
     LONG c;
     struct FileHandle *f = (struct FileHandle *)BADDR(errfh);
     struct InfoData *id;
-    int w = 80;
+    int w = 80, known = 0;
     if (GetVar("COLUMNS", v, sizeof v, 0) > 0 && StrToLong(v, &c) > 0 && c >= 20 && c < 1000) return c;
     if (!f->fh_Type) return w;
     if ((id = AllocVec(sizeof *id, MEMF_PUBLIC | MEMF_CLEAR))) {
@@ -795,10 +795,16 @@ static int columns(void)
             struct IOStdReq *io = (struct IOStdReq *)id->id_InUse;
             if (io && io->io_Unit) {
                 c = ((struct ConUnit *)io->io_Unit)->cu_XMax + 1;
-                if (c >= 20 && c < 1000) w = c;
+                if (c >= 20 && c < 1000) { w = c; known = 1; }
             }
         }
         FreeVec(id);
+        if (!known) {
+            /* not CON: or RAW: (CTerm says 'CTRM'): ask the console itself, else a
+             * line of 80 in a narrower window wrapped on every redraw */
+            c = cu_termwidth(Input(), errfh);
+            if (c >= 20) w = c;
+        }
     }
     return w;
 }

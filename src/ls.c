@@ -69,27 +69,14 @@ static int kindof(Ent *e) { return cu_kind(e->name, e->type, e->prot); }
 
 static int termwidth(BPTR in)
 {
-    UBYTE b[64];
-    int n = 0, p[4] = { 0, 0, 0, 0 }, np = 0, i, w = 0;
     char v[16];
+    int w;
     if (GetVar("COLUMNS", v, sizeof v, GVF_LOCAL_ONLY) > 0) {
         LONG c;
         if (StrToLong(v, &c) > 0 && c >= 10 && c < 1000) return c;
     }
-    if (!in || !IsInteractive(in)) return 80;
-    SetMode(in, 1);
-    Write(cu_out, "\x9b" "0 q", 4);
-    while (n < (int)sizeof b - 1 && WaitForChar(in, 500000)) {
-        if (Read(in, b + n, 1) != 1) break;
-        if (b[n++] == 'r') break;
-    }
-    SetMode(in, 0);
-    for (i = 0; i < n; i++) {
-        if (b[i] >= '0' && b[i] <= '9') { if (np < 4) p[np] = p[np] * 10 + b[i] - '0'; }
-        else if (b[i] == ';') { if (np < 3) np++; }
-        else if (b[i] == 'r') { if (np == 3) w = p[3]; break; }
-    }
-    return w >= 10 ? w : 80;
+    w = cu_termwidth(in, cu_out);
+    return w ? w : 80;
 }
 
 /* ---- reading a drawer ---- */

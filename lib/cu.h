@@ -73,6 +73,10 @@ int cu_natcmp(const char *a, const char *b);
 /* ---- paths ---- */
 int cu_join(char *buf, const char *dir, const char *name);   /* 0: too long */
 long cu_stackleft(void);
+/* the console's width in columns, asked with the window bounds report
+ * (CSI 0 q, written to out, the answer read from in in raw mode): CON:,
+ * RAW: and CTerm all answer. 0 when in is not a console or none came. */
+int cu_termwidth(BPTR in, BPTR out);
 
 /* ---- reading text ----
  * A file (or "-" / NULL: Input()) read in big blocks; cu_line() gives one

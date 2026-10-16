@@ -244,6 +244,26 @@ int cu_join(char *buf, const char *dir, const char *name)
     return 1;
 }
 
+int cu_termwidth(BPTR in, BPTR out)
+{
+    UBYTE b[64];
+    int n = 0, p[4] = { 0, 0, 0, 0 }, np = 0, i, w = 0;
+    if (!in || !out || !IsInteractive(in)) return 0;
+    SetMode(in, 1);
+    Write(out, "\x9b" "0 q", 4);
+    while (n < (int)sizeof b - 1 && WaitForChar(in, 500000)) {
+        if (Read(in, b + n, 1) != 1) break;
+        if (b[n++] == 'r') break;
+    }
+    SetMode(in, 0);
+    for (i = 0; i < n; i++) {
+        if (b[i] >= '0' && b[i] <= '9') { if (np < 4) p[np] = p[np] * 10 + b[i] - '0'; }
+        else if (b[i] == ';') { if (np < 3) np++; }
+        else if (b[i] == 'r') { if (np == 3) w = p[3]; break; }
+    }
+    return w >= 10 && w < 1000 ? w : 0;
+}
+
 long cu_stackleft(void)
 {
     char here;
