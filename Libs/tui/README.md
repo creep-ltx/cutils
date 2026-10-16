@@ -141,6 +141,7 @@ and in a plain Shell window at the same time (each its own size and kind), keys 
 F-keys, å), mouse clicks, quitting, the static build, a missing library (message, rc 10), and
 the library thrown out by `Avail FLUSH` and loaded again. Not yet on the A1200.
 
-**Next:** CUtils' man/top/ctop (the CUtils session takes it up with the user: it adds a
-`LIBS:` file to commands already installed). CFile has no terminal mode. Markdown's pictures through
+**Next:** CUtils' man/top/ctop stay independent (the user, 2026-10-16: CUtils has no `LIBS:`
+dependencies). They may compile `src/core.c` in statically instead of their own copy, so
+**`core.c` must always build outside the library** too (`TUI_STATIC`, `build/libtui.a`). CFile has no terminal mode. Markdown's pictures through
 `TuiRaw` not tried yet (Ahiru's are, on the A1200). Then grow it: keys files, themes, `ENVARC:FileColours`, lists, menus, a file picker.
