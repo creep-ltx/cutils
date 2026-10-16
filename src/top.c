@@ -421,6 +421,7 @@ static int help(void)
         tui_cursor(0, tui_rows - 1, 0);
         tui_flush();
         if (!tui_wait(&e, -1, 0, NULL)) continue;
+        if (e.type == TE_END) return 0;
         if (e.type == TE_RESIZE) { tui_resized(); continue; }
         if (e.type == TE_KEY) return e.key != (TM_CTRL | 'c');
     }
@@ -438,6 +439,7 @@ static int ask(const char *prompt, char *buf, int size)
         strcat(st, buf);
         draw(st);
         if (!tui_wait(&e, -1, 0, NULL)) continue;
+        if (e.type == TE_END) return 0;
         if (e.type == TE_RESIZE) { tui_resized(); keepsel(); continue; }
         if (e.type != TE_KEY) continue;
         if (e.key == K_ENTER) return 1;
@@ -528,6 +530,7 @@ static int interactive(int count, int delay10)
         if (left > hz / 2) left = hz / 2;    /* the hooks' ring read twice a second */
         cu_cpudrain();
         if (!tui_wait(&e, left * (1000000 / hz), 0, NULL)) continue;
+        if (e.type == TE_END) return 1;         /* the terminal has gone */
         if (e.type == TE_RESIZE) { tui_resized(); keepsel(); draw(NULL); continue; }
         if (e.type == TE_MOUSE) {
             if (e.mact == TB_WHEELUP) sel -= 3;

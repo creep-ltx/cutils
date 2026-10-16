@@ -1289,6 +1289,7 @@ static int helpview(void)
         tui_cursor(0, tui_rows - 1, 0);
         tui_flush();
         if (!tui_wait(&e, -1, 0, NULL)) continue;
+        if (e.type == TE_END) return 0;
         if (e.type == TE_RESIZE) { tui_resized(); continue; }
         if (e.type == TE_KEY) return e.key != (TM_CTRL | 'c');
     }
@@ -1306,6 +1307,7 @@ static int ask(const char *q, char *buf, int size)
         if (show[3]) drawall(st);
         else { show[3] = 1; drawall(st); show[3] = 0; }
         if (!tui_wait(&e, 1000000, 0, NULL)) { cu_cpudrain(); continue; }
+        if (e.type == TE_END) return 0;
         if (e.type == TE_RESIZE) { tui_resized(); continue; }
         if (e.type != TE_KEY) continue;
         if (e.key == K_ENTER) return 1;
@@ -1418,6 +1420,7 @@ static int run(void)
         if (left > hz / 2) left = hz / 2;    /* the hooks' ring read twice a second */
         cu_cpudrain();
         if (!tui_wait(&e, left * (1000000 / hz), 0, NULL)) continue;
+        if (e.type == TE_END) return 1;         /* the terminal has gone */
         if (e.type == TE_RESIZE) { tui_resized(); keepsel(); drawall(NULL); continue; }
         if (e.type == TE_MOUSE) {
             int lr = pbox_y + 2 + (info ? 6 : 0);

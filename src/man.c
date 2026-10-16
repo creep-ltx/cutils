@@ -1034,6 +1034,7 @@ static int ask(const char *prompt, char *buf, int size)
         tui_cursor(strlen(st) < (unsigned)tui_cols ? strlen(st) : tui_cols - 1, rows, 1);
         tui_flush();
         if (!tui_wait(&e, -1, 0, NULL)) continue;
+        if (e.type == TE_END) return 0;
         if (e.type == TE_RESIZE) { tui_resized(); render(tui_cols - 1); clamp(); draw(NULL); continue; }
         if (e.type != TE_KEY) continue;
         if (e.key == K_ENTER) return n > 0;
@@ -1054,6 +1055,7 @@ static void viewer(void)
     draw(NULL);
     for (;;) {
         if (!tui_wait(&e, -1, 0, NULL)) continue;
+        if (e.type == TE_END) break;            /* the terminal has gone */
         rows = tui_rows - 1;
         msg = NULL;
         if (e.type == TE_RESIZE) {

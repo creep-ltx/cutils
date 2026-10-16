@@ -32,6 +32,12 @@ static BPTR tin, tout;
 static struct MsgPort *conport, *rport;
 static struct DosPacket *wpkt;   /* AllocDosObject's: the packet itself */
 static int wpending, topen, tsusp;
+/* the terminal has gone: CTerm closing a tab or quitting answers every
+ * WAIT_CHAR "ready" and every Read 0 bytes, for ever. Seen once, the
+ * program gets TE_END and is told so again on every wait (a program that
+ * kept waiting would spin, and hold CTerm open: it has the window).
+ * The same fix as Maki 263def2. */
+static int ended;
 
 /* ---- output ---------------------------------------------------------- */
 
@@ -665,7 +671,7 @@ static void readnow(void)
     int guard = 16;
     while (guard-- && WaitForChar(tin, 0)) {
         LONG n = Read(tin, ibuf + ilen, sizeof(ibuf) - ilen);
-        if (n <= 0) break;
+        if (n <= 0) { ended = 1; break; }
         ilen += (int)n;
         parse(0);
         if (ilen >= (int)sizeof(ibuf) - 8) {    /* one long run (a paste): take it as it is */
@@ -678,6 +684,7 @@ static void readnow(void)
         if (WaitForChar(tin, 40000)) {
             LONG n = Read(tin, ibuf + ilen, sizeof(ibuf) - ilen);
             if (n > 0) ilen += (int)n;
+            else ended = 1;
             parse(0);
         }
         if (ilen && !inpaste) parse(1);
@@ -729,6 +736,10 @@ int tui_wait(TuiEv *e, long us, ULONG extra, ULONG *got)
         if (evh != evt) {
             *e = evq[evh];
             evh = (evh + 1) % EVQ;
+            return 1;
+        }
+        if (ended) {
+            e->type = TE_END;
             return 1;
         }
         collect(0);
@@ -792,11 +803,12 @@ static void modes_off(void)
 
 static void readreplies(int tries, int *flag)
 {
-    while (tries-- > 0 && !*flag) {
+    while (tries-- > 0 && !*flag && !ended) {
         if (!WaitForChar(tin, 100000)) continue;
         {
             LONG n = Read(tin, ibuf + ilen, sizeof(ibuf) - ilen);
-            if (n > 0) ilen += (int)n;
+            if (n <= 0) { ended = 1; return; }
+            ilen += (int)n;
             parse(0);
         }
     }
@@ -935,8 +947,8 @@ void tui_keyafter(void)
     if (!topen) return;
     Write(tout, (APTR)m, sizeof(m) - 1);
     SetMode(tin, 1);
-    Read(tin, &c, 1);
-    while (WaitForChar(tin, 20000)) Read(tin, &c, 1);
+    if (Read(tin, &c, 1) <= 0) ended = 1;
+    while (!ended && WaitForChar(tin, 20000)) if (Read(tin, &c, 1) <= 0) ended = 1;
     Write(tout, "\r\x1b[K", 4);
     SetMode(tin, 0);
 }

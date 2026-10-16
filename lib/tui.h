@@ -37,7 +37,8 @@ enum {
 #define K_BASE(k) ((k) & ~TM_MASK)
 
 /* events */
-enum { TE_NONE, TE_KEY, TE_MOUSE, TE_PASTE, TE_RESIZE };
+enum { TE_NONE, TE_KEY, TE_MOUSE, TE_PASTE, TE_RESIZE,
+       TE_END };                /* the terminal has gone (a CTerm tab closed): quit */
 /* mouse actions */
 enum { TB_PRESS = 1, TB_RELEASE, TB_DRAG, TB_WHEELUP, TB_WHEELDOWN };
 
