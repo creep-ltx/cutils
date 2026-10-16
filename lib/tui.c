@@ -73,7 +73,8 @@ static void outnum(int v)
 
 typedef struct {
     ULONG c;
-    UBYTE fg, bg, at, pad;
+    UWORD fg, bg;                /* 0-15, TC_DEFAULT, or TC_X(n) */
+    UBYTE at, pad;
 } Cell;
 
 static Cell *want, *shown;       /* tui_rows x tui_cols each */
@@ -145,8 +146,8 @@ void tui_putc(int col, int row, ULONG c, int fg, int bg, int attr)
     if (col < 0 || row < 0 || col >= gw || row >= gh) return;
     p = &want[row * gw + col];
     p->c = cellable(c);
-    p->fg = (UBYTE)fg;
-    p->bg = (UBYTE)bg;
+    p->fg = (UWORD)fg;
+    p->bg = (UWORD)bg;
     p->at = (UBYTE)attr;
 }
 
@@ -165,8 +166,8 @@ void tui_put(int col, int row, const char *s, int len, int fg, int bg, int attr)
     for (i = 0; i < len; i++, p++) {
         unsigned char c = s[i];
         p->c = c >= 32 && c < 0x7F ? c : cellable(c);
-        p->fg = (UBYTE)fg;
-        p->bg = (UBYTE)bg;
+        p->fg = (UWORD)fg;
+        p->bg = (UWORD)bg;
         p->at = (UBYTE)attr;
     }
 }
@@ -182,8 +183,8 @@ void tui_fill(int col, int row, int w, ULONG c, int fg, int bg, int attr)
     p = &want[row * gw + col];
     for (i = 0; i < w; i++, p++) {
         p->c = c;
-        p->fg = (UBYTE)fg;
-        p->bg = (UBYTE)bg;
+        p->fg = (UWORD)fg;
+        p->bg = (UWORD)bg;
         p->at = (UBYTE)attr;
     }
 }
@@ -205,6 +206,35 @@ void tui_cursor(int col, int row, int on)
  * 2 white, 3 blue) - the ANSI sixteen as near as they go */
 static const UBYTE wbpen[17] = { 1, 1, 1, 1, 3, 1, 3, 2, 1, 1, 1, 2, 3, 1, 3, 2, 0 };
 
+/* one of the 256 (TC_X) as the nearest of the sixteen */
+static int to16(int x)
+{
+    int r, g, b, hi;
+    if (x < 16) return x;
+    if (x >= 232) { x -= 232; return x < 6 ? 0 : x < 14 ? 8 : x < 20 ? 7 : 15; }
+    x -= 16;
+    r = x / 36; g = x / 6 % 6; b = x % 6;
+    hi = r > g ? r : g;
+    if (b > hi) hi = b;
+    if (!hi) return 0;
+    x = (r * 2 >= hi && r >= 2 ? 1 : 0) | (g * 2 >= hi && g >= 2 ? 2 : 0) | (b * 2 >= hi && b >= 2 ? 4 : 0);
+    if (!x) return 8;
+    return hi >= 4 ? x + 8 : x;
+}
+
+static void sgrcol(int c, int base)
+{
+    if (c == TC_DEFAULT) { outnum(base + 9); return; }
+    if (c & 0x100) {                /* CTerm: the 256 */
+        outnum(base + 8);
+        outs(";5;");
+        outnum(c & 0xFF);
+        return;
+    }
+    if (c < 8) outnum(base + c);
+    else outnum(base + 60 + c - 8);
+}
+
 static void sgr(int fg, int bg, int at)
 {
     if (fg == curfg && bg == curbg && at == curat) return;
@@ -216,17 +246,13 @@ static void sgr(int fg, int bg, int at)
     if (at & TA_UNDER) outs(";4");
     if (at & TA_REV) outs(";7");
     if (!tui_cterm) {
-        fg = fg == TC_DEFAULT ? 1 : wbpen[fg];
-        bg = bg == TC_DEFAULT ? TC_DEFAULT : wbpen[bg];
+        fg = fg == TC_DEFAULT ? 1 : wbpen[fg & 0x100 ? to16(fg & 0xFF) : fg];
+        bg = bg == TC_DEFAULT ? TC_DEFAULT : wbpen[bg & 0x100 ? to16(bg & 0xFF) : bg];
     }
     out(";", 1);
-    if (fg == TC_DEFAULT) outs("39");
-    else if (fg < 8) outnum(30 + fg);
-    else outnum(90 + fg - 8);
+    sgrcol(fg, 30);
     out(";", 1);
-    if (bg == TC_DEFAULT) outs("49");
-    else if (bg < 8) outnum(40 + bg);
-    else outnum(100 + bg - 8);
+    sgrcol(bg, 40);
     out("m", 1);
 }
 

@@ -13,8 +13,10 @@
 #include <dos/dos.h>
 
 /* colours: the ANSI sixteen (CTerm's theme colours), TC_DEFAULT the
- * terminal's own (its background picture shows through) */
+ * terminal's own (its background picture shows through), TC_X(n) one of
+ * xterm's 256 (CTerm; a plain console gets the nearest of its own) */
 #define TC_DEFAULT 16
+#define TC_X(n)    (0x100 | (n))
 /* attributes */
 #define TA_BOLD    1
 #define TA_UNDER   2
