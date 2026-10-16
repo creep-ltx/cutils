@@ -36,10 +36,10 @@ UTF-8.
 #include <proto/tui.h>
 struct Library *TuiBase;
 
-TuiBase = OpenLibrary(TUINAME, 2);  /* 2: TC_RGB and TuiPutUTF8 */
+TuiBase = OpenLibrary(TUINAME, 0);  /* 0.x: also check TuiBase->lib_Revision >= 2 for TC_RGB, TuiPutUTF8 */
 t = TuiOpen(0);                     /* NULL: not a terminal */
 TuiPut(t, 0, 0, "hello", 5, 7, TC_DEFAULT, TA_BOLD);
-TuiPutUTF8(t, 0, 1, "Łódź", -1, TC_RGB(255, 200, 80), TC_DEFAULT, 0);   /* version 2 */
+TuiPutUTF8(t, 0, 1, "Łódź", -1, TC_RGB(255, 200, 80), TC_DEFAULT, 0);   /* 0.2 */
 TuiFlush(t);
 TuiWait(t, &ev, -1, 0, NULL);
 TuiClose(t);
@@ -61,7 +61,8 @@ their own name there).
 `build/tuitest` / `tuitest_static`. After adding a call to `tui.sfd`: `make headers`.
 
 - **The table order is for ever.** `tui.sfd` and `functable` in `src/lib.c` list the calls in
-  the same order; new ones go at the end of both, and `TUI_VERSION` goes up.
+  the same order; new ones go at the end of both, and `TUI_REVISION` goes up (0.2, 0.3...;
+  from 1.0 on, `TUI_VERSION`). Programs check `lib_Revision` while the version is 0.
 - The library has no C library inside (`-nostartfiles -nostdlib`, its own `memcpy` and friends).
   The build fails if libnix code gets into it.
 - 68020 and up, AmigaOS 2.04+ calls (made for OS 3.2 and CTerm, like the rest of the family).
@@ -82,19 +83,30 @@ their own name there).
 
 ## State
 
-**2.0b1, 2026-10-16:** 24-bit colour, `TuiPutUTF8`, and the nearest character in a Latin-1
+**Programs on it (2026-10-16):** Maki 0.1b4, Markdown 0.1b3, Sumi 0.2b4 (each about 8 KB
+smaller), tested in FS-UAE in CTerm: Maki on a file and a pipe, Markdown viewing and
+editing, Sumi saving a file. The old `tui_*` names are safe before `tui_open` and after
+`tui_close`, as the built-in copy was: Markdown lays its file out first, and through the
+library that call crashed (an empty `TuiBase`, guru `8000000B`) until `include/tui.h`
+checked for it.
+
+**Version numbers:** 0.x while the calls may still grow; `lib_Version` is 0 and
+`lib_Revision` counts (0.1, 0.2...), so programs open version 0 and check the revision.
+
+**0.2b1, 2026-10-16:** 24-bit colour, `TuiPutUTF8`, and the nearest character in a Latin-1
 console, tested in FS-UAE: CTerm on its own 256-colour screen (a smooth 24-bit gradient), a plain
-console (every stand-in above), and a version 1 program run on the version 2 library. The
+console (every stand-in above), and a 0.1 program run on the 0.2 library. The
 library is 12.9 KB. **Known gap, in CTerm:** with an Amiga bitmap font CTerm draws characters
 beyond Latin-1 itself, and its own stand-in table (CTerm `src/draw.c` `fallback()`) has no
 accented letters or `€` yet, so `Ł Š ź €` show as `?` there (with TrueType they show). The
 library sends the right UTF-8; noted for the CTerm session in CTerm's TODO.md.
 
-**1.0b1, 2026-10-16**, tested in FS-UAE (A1200, OS 3.2.1, `amiga-test a1200-32-mui5`): in CTerm
+**0.1b1, 2026-10-16**, tested in FS-UAE (A1200, OS 3.2.1, `amiga-test a1200-32-mui5`): in CTerm
 and in a plain Shell window at the same time (each its own size and kind), keys (Ctrl, Shift,
 F-keys, å), mouse clicks, quitting, the static build, a missing library (message, rc 10), and
 the library thrown out by `Avail FLUSH` and loaded again. Not yet on the A1200.
 
-**Next:** move Maki over (smallest), then Markdown, Sumi, and CUtils' man/top/ctop (the CUtils
-session's call); then grow it: keys files, themes, `ENVARC:FileColours`, lists, menus, a file
-picker.
+**Next:** CUtils' man/top/ctop (the CUtils session's call). Ahiru's terminal mode has its own
+older copy (`Ahiru/src/term.c`), but Ahiru is built for the 68000 and the library for the
+68020: either a 68000 build of the library, or Ahiru keeps its copy. CFile has no terminal
+mode. Then grow it: keys files, themes, `ENVARC:FileColours`, lists, menus, a file picker.

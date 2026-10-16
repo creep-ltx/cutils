@@ -17,7 +17,7 @@
  * rest of the line.
  *
  * The rule of a library: a function's place in the table never moves.
- * New calls are added at the end of tui.sfd and the version goes up. */
+ * New calls are added at the end of tui.sfd and the revision goes up. */
 #ifndef LIBRARIES_TUI_H
 #define LIBRARIES_TUI_H
 
@@ -25,11 +25,14 @@
 #include <dos/dos.h>
 
 #define TUINAME    "tui.library"
-#define TUIVERSION 2                /* the version this header describes */
+#define TUIVERSION  0               /* the version and revision this header */
+#define TUIREVISION 2               /* describes: 0.2 (OpenLibrary asks for the
+                                     * version; while it is 0, check
+                                     * lib_Revision for the newer calls) */
 
 /* colours: the ANSI sixteen (CTerm's theme colours), TC_DEFAULT the
  * terminal's own (its background picture shows through), TC_X(n) one of
- * xterm's 256, TC_RGB(r, g, b) any 24-bit colour (version 2). CTerm shows
+ * xterm's 256, TC_RGB(r, g, b) any 24-bit colour (0.2). CTerm shows
  * them as they are; a plain console gets the nearest of its own. */
 #define TC_DEFAULT 16
 #define TC_X(n)    (0x100 | (n))

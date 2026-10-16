@@ -4,7 +4,7 @@
 #define CLIB_TUI_PROTOS_H
 
 /*
-**   $VER: tui_protos.h 2.0 $Id: tui.sfd 2.0 $
+**   $VER: tui_protos.h 0.2 $Id: tui.sfd 0.2 $
 **
 **   C prototypes. For use with 32 bit integers only.
 **
@@ -23,8 +23,8 @@ extern "C" {
 
 /* tui.library: the toolkit for programs inside the terminal. */
 /* The order below is the library's jump table: never move a line, */
-/* only add new ones at the end (and raise the version). */
-/* --- version 1 --- */
+/* only add new ones at the end (and raise the revision: 0.2, 0.3...). */
+/* --- 0.1 --- */
 LONG TuiPossible(BPTR in);
 struct Tui * TuiOpen(BPTR in);
 VOID TuiClose(struct Tui * t);
@@ -46,7 +46,7 @@ ULONG TuiBox(struct Tui * t, LONG which);
 VOID TuiDirty(struct Tui * t, LONG col, LONG row, LONG w, LONG h);
 VOID TuiRaw(struct Tui * t, LONG col, LONG row, CONST_STRPTR s, LONG n);
 
-/* --- version 2 --- */
+/* --- 0.2 --- */
 LONG TuiPutUTF8(struct Tui * t, LONG col, LONG row, CONST_STRPTR s, LONG len, LONG fg, LONG bg, LONG attr);
 
 #ifdef __cplusplus

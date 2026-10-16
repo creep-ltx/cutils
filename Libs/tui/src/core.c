@@ -2,7 +2,7 @@
  * tui.library (lib.c puts the calls in its jump table), or straight into
  * a program (TUI_STATIC, include/tui.h). Grown from Ahiru's terminal mode
  * (Ahiru src/term.c), then CUtils lib/tui.c, with Markdown's italic, dim,
- * strike, TuiDirty and TuiRaw merged in (2026-10-16). Version 2: 24-bit
+ * strike, TuiDirty and TuiRaw merged in (2026-10-16). 0.2: 24-bit
  * colour, TuiPutUTF8, and the nearest character for a Latin-1 console.
  *
  * Everything a program's terminal needs lives in its own struct (Priv,

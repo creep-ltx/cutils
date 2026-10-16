@@ -79,13 +79,13 @@ static LONG L_PutUTF8(REG(a0, struct Tui *t), REG(d0, LONG col), REG(d1, LONG ro
 /* in tui.sfd's order, after exec's four: never reorder, only add */
 static const APTR functable[] = {
     (APTR)libopen, (APTR)libclose, (APTR)libexpunge, (APTR)libnull,
-    /* version 1 */
+    /* 0.1 */
     (APTR)L_Possible, (APTR)L_Open, (APTR)L_Close, (APTR)L_Suspend,
     (APTR)L_Resume, (APTR)L_KeyAfter, (APTR)L_Put, (APTR)L_PutC,
     (APTR)L_Fill, (APTR)L_Clear, (APTR)L_Cursor, (APTR)L_Flush,
     (APTR)L_Redraw, (APTR)L_Resized, (APTR)L_Title, (APTR)L_Wait,
     (APTR)L_Beep, (APTR)L_Box, (APTR)L_Dirty, (APTR)L_Raw,
-    /* version 2 */
+    /* 0.2 */
     (APTR)L_PutUTF8,
     (APTR)-1
 };

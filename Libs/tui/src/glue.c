@@ -14,7 +14,8 @@ static BPTR conin;
 #ifndef TUI_STATIC
 struct Library *TuiBase;
 #define STR_(x) #x
-#define VERS STR_(TUIVERSION)      /* the version this program was built against */
+#define STR(x) STR_(x)
+#define VERS STR(TUIVERSION) "." STR(TUIREVISION)  /* what this program was built against */
 static int told;
 
 /* tui.library, opened once; missing: said once, on the error stream */
@@ -22,10 +23,15 @@ static int haslib(void)
 {
     if (TuiBase) return 1;
     TuiBase = OpenLibrary(TUINAME, TUIVERSION);
+    /* 0.x: the revision says which calls are there */
+    if (TuiBase && TuiBase->lib_Version == TUIVERSION && TuiBase->lib_Revision < TUIREVISION) {
+        CloseLibrary(TuiBase);
+        TuiBase = NULL;
+    }
     if (!TuiBase && !told) {
         struct Process *me = (struct Process *)FindTask(NULL);
         BPTR err = me->pr_CES ? me->pr_CES : Output();
-        static const char m[] = "needs tui.library (version " VERS " or newer) in LIBS:\n";
+        static const char m[] = "needs tui.library " VERS " or newer in LIBS:\n";
         told = 1;
         if (err) Write(err, (APTR)m, sizeof(m) - 1);
     }
@@ -79,4 +85,31 @@ void tui_close(void)
     TuiClose(tui_h);
     tui_h = NULL;
     droplib();
+}
+
+/* ---- before tui_open / after tui_close (include/tui.h) ---- */
+
+ULONG tui_nobox(int which)
+{
+    static const char asc[] = "-|++++>.";
+    if (which == BX_DOT) return 0xB7;
+    return which >= 0 && which < BX_DOT ? (UBYTE)asc[which] : '?';
+}
+
+/* how many cells UTF-8 text takes: one a character */
+LONG tui_nowidth(const char *s, long len)
+{
+    LONG n = 0;
+    if (!s) return 0;
+    for (; len < 0 ? *s != 0 : len-- > 0; s++)
+        if ((*s & 0xC0) != 0x80) n++;
+    return n;
+}
+
+int tui_noterm(TuiEv *e)
+{
+    int i;
+    for (i = 0; i < (int)sizeof(*e); i++) ((char *)e)[i] = 0;
+    e->type = TE_END;
+    return 1;
 }

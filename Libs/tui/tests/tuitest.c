@@ -49,7 +49,7 @@ static void draw(void)
         tui_put(2 + i * 3, 3, "   ", 3, 7, i, 0);
     for (i = 0; i < 24 && 2 + i * 2 < w - 2; i++)
         tui_put(2 + i * 2, 4, "  ", 2, 7, TC_X(196 + i), 0);
-    for (i = 0; i < w - 4; i++) {           /* version 2: 24-bit */
+    for (i = 0; i < w - 4; i++) {           /* 0.2: 24-bit */
         int v = i * 255 / (w - 5);
         tui_put(2 + i, 5, " ", 1, 7, TC_RGB(v, 64, 255 - v), 0);
     }
@@ -61,7 +61,7 @@ static void draw(void)
     tui_put(32, y, "dim", 3, 7, TC_DEFAULT, TA_DIM);
     tui_put(37, y, "strike", 6, 7, TC_DEFAULT, TA_STRIKE);
     { static const char l1[] = "Latin-1: \xe5\xe4\xf6 \xc5\xc4\xd6 \xe9"; tui_put(2, 8, l1, sizeof(l1) - 1, 6, TC_DEFAULT, 0); }
-    /* version 2: UTF-8 text, and its nearest in a Latin-1 console */
+    /* 0.2: UTF-8 text, and its nearest in a Latin-1 console */
     i = tui_pututf8(2, 9, "UTF-8: \u250c\u2500\u2510\u2502 \u2588\u2593\u2592\u2591 \u201cq\u201d \u2014 "
                     "\u0141\u00f3d\u017a \u0160koda \u2192\u2190\u2191 \u2713 \u2026 \u28ff \u20ac \u4e2d", -1,
                     TC_RGB(255, 200, 80), TC_DEFAULT, 0);
