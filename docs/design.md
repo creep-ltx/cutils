@@ -72,7 +72,7 @@ manager.
   leftmost-longest), RE_MULTILINE, \b \B \< \> \` \'; fixed there: a search gave up when
   nothing could start at one place (`$` alone, `\bfoo`), {n,m} over 100 is an error (was a
   plain {), and the {n,m} copy is on the heap (nested groups overflowed a 4 KB stack).
-  top 0.1b3 (2026-10-16): the classic top in the terminal (the terminal toolkit, now Libs/tui/src/core.c); CPU% and TIME+ exact
+  top 0.1b3 (2026-10-16): the classic top in the terminal (the terminal toolkit, now tui/src/core.c in the AmigaLibs repo); CPU% and TIME+ exact
   through exec's tc_Launch/tc_Switch hooks on every task (an EClock time per switch; probe
   experiments/exectap.c, Knowledge amiga/task-cpu-time.md). The hook code (74 bytes) is copied
   once per boot into a block that is never freed, behind the semaphore "CUtils top hooks 2",
@@ -118,9 +118,9 @@ manager.
   library is an archive instead, so a command links only the parts it uses.
 - **Small**: dos.library and libnix's malloc only; no stdio, no printf.
 - **The terminal toolkit is tui.library's source, built in** (the user, 2026-10-16): man, top and
-  ctop stay independent of LIBS: (no tui.library needed), but compile Libs/tui/src/core.c and
+  ctop stay independent of LIBS: (no tui.library needed), but compile AmigaLibs tui/src/core.c and
   glue.c with CUtils' flags and -DTUI_STATIC (the Makefile's TUI rules), so a fix there reaches
-  both. lib/tui.c, the old copy, is gone. Libs/tui is the tui.library session's: a change to the
+  both. lib/tui.c, the old copy, is gone. AmigaLibs/tui is the tui.library session's: a change to the
   toolkit goes there, and core.c keeps building outside the library (its README).
 - **Times: the Amiga's clock is local, Unix seconds are UTC** (the user's choice, 2026-10-16):
   cu_unixtime() / cu_fromunix() / cu_tzeast() in lib/cu_date.c (from CTerm's files.c). The

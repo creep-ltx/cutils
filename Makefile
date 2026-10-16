@@ -63,11 +63,11 @@ build/zs_%.o: third_party/zstd/decompress/%.c
 	@mkdir -p build
 	$(CC) $(TPFLAGS) -c $< -o $@
 
-# the terminal toolkit: tui.library's own source (Libs/tui/src/core.c), built into
+# the terminal toolkit: tui.library's own source (AmigaLibs tui/src/core.c, the repo beside CUtils), built into
 # man, top and ctop (TUI_STATIC: no LIBS:tui.library needed) with CUtils' flags
-# (-resident32), so a fix in Libs/tui reaches both. Libs/tui keeps core.c building
+# (-resident32), so a fix there reaches both. tui.library keeps core.c building
 # outside the library (its README).
-TUI     = Libs/tui
+TUI     ?= ../AmigaLibs/tui
 TUICMDS = man top ctop
 TUIDEPS = $(TUI)/include/tui.h $(TUI)/include/libraries/tui.h
 
