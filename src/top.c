@@ -53,7 +53,7 @@
 #include "tui.h"
 
 const char *cu_name = "top";
-static const char version[] = "$VER: top 0.1b2 (16.10.2026)";
+static const char version[] = "$VER: top 0.1b3 (16.10.2026)";
 
 struct Device *TimerBase;
 struct ExpansionBase *ExpansionBase;
@@ -135,11 +135,19 @@ static void sampler_off(void)
  * that note ThisTask and an EClock time into a ring: each task's time is
  * then exact, not sampled (Knowledge amiga/task-cpu-time.md: checked on
  * 3.1, 3.2.1 and Emu68). New tasks are hooked at every refresh; a task
- * that already had hooks of its own keeps them and is sampled. Only one
- * top hooks at a time (the semaphore below): the hooks find the ring
- * through tap_ptr beside the code, which a second top sharing the code
- * (Resident) would overwrite; that one samples. */
+ * that already had hooks of its own keeps them and is sampled.
+ *
+ * The hooks do not live in top. A task that ends while hooked leaves its
+ * flags and our pointers in freed memory, and a task later made in that
+ * memory without clearing them would call into a top long gone (dos
+ * clears them for Run and NewShell; not every program that makes a task
+ * may). So the hook code is copied once per boot into a block that is
+ * never freed (152 bytes), found again by the name of the semaphore at
+ * its head; with no top running, the hooks only return.
+ * The semaphore is also the lock: one top at a time owns the hooks, a
+ * second one samples. */
 #define NEV 8192                 /* events in the ring, 16 bytes each */
+#define KEEPNAME "CUtils top hooks 2"   /* a new layout: a new name */
 
 typedef struct {
     struct Device *timer;        /* 0 */
@@ -149,26 +157,24 @@ typedef struct {
 } Tap;
 typedef char ck_ev[offsetof(Tap, ev) == 32 ? 1 : -1];
 
-/* the hooks keep every register: exec's state then is not documented */
+/* The stub copied into the block: the ring's address (NULL: no top),
+ * then the hooks, position independent. They keep every register. */
 __asm__(
     "	.text\n"
     "	.even\n"
+    "	.globl _top_stub\n"
+    "_top_stub:\n"
     "_top_tapptr:	.long 0\n"
-    "	.globl _top_tapwhere\n"
-    "_top_tapwhere:\n"
-    "	lea	_top_tapptr(pc),a0\n"
-    "	move.l	a0,d0\n"
-    "	rts\n"
-    "	.globl _top_tapon\n"
-    "_top_tapon:\n"
+    "_top_tapon:\n"                /* tc_Launch's hook: stub + 4 */
     "	movem.l	d0-d1/a0-a1/a6,-(sp)\n"
     "	moveq	#0,d1\n"
     "	bra.s	2f\n"
-    "	.globl _top_tapoff\n"
     "_top_tapoff:\n"
     "	movem.l	d0-d1/a0-a1/a6,-(sp)\n"
     "	moveq	#1,d1\n"
-    "2:	movea.l	_top_tapptr(pc),a1\n"
+    "2:	move.l	_top_tapptr(pc),d0\n"
+    "	beq.s	3f\n"                  /* no top: nothing to note */
+    "	movea.l	d0,a1\n"
     "	move.l	4(a1),d0\n"
     "	andi.l	#8191,d0\n"
     "	lsl.l	#4,d0\n"
@@ -182,10 +188,32 @@ __asm__(
     "	jsr	-60(a6)\n"             /* ReadEClock(a0) */
     "	movea.l	(sp)+,a1\n"
     "	addq.l	#1,4(a1)\n"
-    "	movem.l	(sp)+,d0-d1/a0-a1/a6\n"
+    "3:	movem.l	(sp)+,d0-d1/a0-a1/a6\n"
+    "	rts\n"
+    "_top_stubend:\n"
+    /* where the stub is, its size, where in it tc_Switch's hook is: asked
+     * of code, because -resident32 reaches every C object through a4 */
+    "	.globl _top_stubat\n"
+    "_top_stubat:\n"
+    "	lea	_top_stub(pc),a0\n"
+    "	move.l	a0,d0\n"
+    "	rts\n"
+    "	.globl _top_stubsize\n"
+    "_top_stubsize:\n"
+    "	move.l	#_top_stubend-_top_stub,d0\n"
+    "	rts\n"
+    "	.globl _top_offat\n"
+    "_top_offat:\n"
+    "	move.l	#_top_tapoff-_top_stub,d0\n"
     "	rts\n");
-extern ULONG *top_tapwhere(void);
-extern void top_tapon(void), top_tapoff(void);
+extern char *top_stubat(void);
+extern ULONG top_stubsize(void), top_offat(void);
+
+typedef struct {
+    struct SignalSemaphore sem;  /* named KEEPNAME, held by the top that hooks */
+    char name[24];
+    ULONG code[1];               /* the stub; code[0] is the ring's address */
+} Keep;
 
 #define NACC 512                 /* a hash of the tasks' times, 2 x MAXT */
 typedef struct {
@@ -195,7 +223,8 @@ typedef struct {
 } Acc;
 
 static Tap *tap;
-static struct SignalSemaphore *tapsem;
+static Keep *keep;
+static APTR onfn, offfn;         /* the hooks in the block */
 static Acc acc[NACC], acc2[NACC];
 static APTR foreign[MAXT];       /* tasks with hooks of their own */
 static int nforeign, taplost;
@@ -225,94 +254,89 @@ static Acc *accfor(Acc *h, APTR a, int add)
     return NULL;
 }
 
-static void hooklist(struct List *l)
+static void hookone(struct Task *t)
 {
-    struct Node *n;
-    for (n = l->lh_Head; n->ln_Succ; n = n->ln_Succ) {
-        struct Task *t = (struct Task *)n;
-        if ((APTR)t->tc_Launch == (APTR)top_tapon) continue;
-        if (t->tc_Flags & (TF_SWITCH | TF_LAUNCH)) { if (nforeign < MAXT) foreign[nforeign++] = t; continue; }
-        t->tc_Switch = (APTR)top_tapoff;
-        t->tc_Launch = (APTR)top_tapon;
-        t->tc_Flags |= TF_SWITCH | TF_LAUNCH;
-    }
+    if ((APTR)t->tc_Launch == onfn) return;
+    if (t->tc_Flags & (TF_SWITCH | TF_LAUNCH)) { if (nforeign < MAXT) foreign[nforeign++] = t; return; }
+    t->tc_Switch = offfn;
+    t->tc_Launch = onfn;
+    t->tc_Flags |= TF_SWITCH | TF_LAUNCH;
 }
 
-static void unhooklist(struct List *l)
+static void unhookone(struct Task *t)
 {
-    struct Node *n;
-    for (n = l->lh_Head; n->ln_Succ; n = n->ln_Succ) {
-        struct Task *t = (struct Task *)n;
-        if ((APTR)t->tc_Launch == (APTR)top_tapon) {
-            t->tc_Flags &= ~(TF_SWITCH | TF_LAUNCH);
-            t->tc_Switch = t->tc_Launch = NULL;
-        }
-    }
+    if ((APTR)t->tc_Launch != onfn) return;
+    t->tc_Flags &= ~(TF_SWITCH | TF_LAUNCH);
+    t->tc_Switch = t->tc_Launch = NULL;
 }
 
-/* every task not hooked yet; top itself runs now, so it is "on" */
+/* every task not hooked yet (ThisTask is in neither list); top itself
+ * runs now, so it is "on" */
 static void hookall(void)
 {
-    struct Task *me = SysBase->ThisTask;
+    struct Node *n;
     nforeign = 0;
     Disable();
-    hooklist(&SysBase->TaskReady);
-    hooklist(&SysBase->TaskWait);
-    /* ThisTask is in neither list */
-    if ((APTR)me->tc_Launch != (APTR)top_tapon) {
-        if (me->tc_Flags & (TF_SWITCH | TF_LAUNCH)) { if (nforeign < MAXT) foreign[nforeign++] = me; }
-        else {
-            me->tc_Switch = (APTR)top_tapoff;
-            me->tc_Launch = (APTR)top_tapon;
-            me->tc_Flags |= TF_SWITCH | TF_LAUNCH;
-        }
-    }
+    for (n = SysBase->TaskReady.lh_Head; n->ln_Succ; n = n->ln_Succ) hookone((struct Task *)n);
+    for (n = SysBase->TaskWait.lh_Head; n->ln_Succ; n = n->ln_Succ) hookone((struct Task *)n);
+    hookone(SysBase->ThisTask);
     Enable();
+}
+
+/* the block, made once per boot; NULL: no memory */
+static Keep *keepblock(void)
+{
+    ULONG size = top_stubsize();
+    Keep *k;
+    Forbid();
+    if (!(k = (Keep *)FindSemaphore((STRPTR)KEEPNAME))
+        && (k = AllocMem(sizeof *k + size, MEMF_PUBLIC | MEMF_CLEAR))) {
+        strcpy(k->name, KEEPNAME);
+        k->sem.ss_Link.ln_Name = k->name;
+        k->sem.ss_Link.ln_Pri = -128;
+        CopyMem(top_stubat(), k->code, size);
+        k->code[0] = 0;
+        CacheClearU();
+        AddSemaphore(&k->sem);   /* never removed: tasks may point here */
+    }
+    Permit();
+    return k;
 }
 
 static int tap_on(void)
 {
-    struct SignalSemaphore *s;
-    if (!(tap = AllocVec(sizeof *tap, MEMF_PUBLIC | MEMF_CLEAR))) return 0;
-    if (!(s = AllocVec(sizeof *s + 16, MEMF_PUBLIC | MEMF_CLEAR))) { FreeVec(tap); tap = NULL; return 0; }
-    strcpy((char *)(s + 1), "CUtils top hooks");
-    s->ss_Link.ln_Name = (char *)(s + 1);
-    s->ss_Link.ln_Pri = -128;
-    Forbid();
-    if (FindSemaphore((STRPTR)"CUtils top hooks")) { Permit(); FreeVec(s); FreeVec(tap); tap = NULL; return 0; }
-    AddSemaphore(s);
-    Permit();
-    tapsem = s;
+    if (!(keep = keepblock())) return 0;
+    if (!AttemptSemaphore(&keep->sem)) { keep = NULL; return 0; }   /* another top */
+    if (!(tap = AllocVec(sizeof *tap, MEMF_PUBLIC | MEMF_CLEAR))) { ReleaseSemaphore(&keep->sem); keep = NULL; return 0; }
+    onfn = (char *)keep->code + 4;
+    offfn = (char *)keep->code + top_offat();
     tap->timer = TimerBase;
-    *top_tapwhere() = (ULONG)tap;
-    CacheClearU();
     lastsnap = curstart = eclock();
     cur = SysBase->ThisTask;
     tapread = 0;
+    keep->code[0] = (ULONG)tap;
+    CacheClearU();               /* read pc-relative: Emu68's JIT may keep it */
     hookall();
     return 1;
 }
 
 static void tap_off(void)
 {
+    struct Node *n;
     if (!tap) return;
     Disable();
-    unhooklist(&SysBase->TaskReady);
-    unhooklist(&SysBase->TaskWait);
-    {
-        struct Task *me = SysBase->ThisTask;
-        if ((APTR)me->tc_Launch == (APTR)top_tapon) {
-            me->tc_Flags &= ~(TF_SWITCH | TF_LAUNCH);
-            me->tc_Switch = me->tc_Launch = NULL;
-        }
-    }
+    keep->code[0] = 0;           /* the hooks note nothing from now on */
+    for (n = SysBase->TaskReady.lh_Head; n->ln_Succ; n = n->ln_Succ) unhookone((struct Task *)n);
+    for (n = SysBase->TaskWait.lh_Head; n->ln_Succ; n = n->ln_Succ) unhookone((struct Task *)n);
+    unhookone(SysBase->ThisTask);
     Enable();
-    /* no hook can be running now: exec calls them only while switching */
+    CacheClearU();
+    /* no hook can be running now (exec calls them only while switching)
+     * and none still has the old address: the ring can go */
     FreeVec(tap);
     tap = NULL;
-    RemSemaphore(tapsem);
-    FreeVec(tapsem);
-    tapsem = NULL;
+    ReleaseSemaphore(&keep->sem);
+    keep = NULL;
 }
 
 /* the events since the last call into the tasks' times */
@@ -756,7 +780,7 @@ static void draw(const char *prompt)
 }
 
 static const char *const helptext[] = {
-    "top 0.1b2 - the tasks that use the processor",
+    "top 0.1b3 - the tasks that use the processor",
     "",
     "  P          sort by CPU% (the default)",
     "  M          sort by stack size",
