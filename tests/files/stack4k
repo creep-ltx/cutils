@@ -1,0 +1,22 @@
+; stack4k - Executed by cases/stack.t: commands on the Shell's default 4 KB
+; stack. Every CUtils command must swap to its own 32 KB one (lib/cu.c
+; __stack); before that, tar czf here reset the machine and man's viewer
+; wrote below its stack (2026-10-16). Everything goes into s4.log, typed at
+; the end: Echo's and the commands' lines otherwise arrive in any order.
+Stack 4096
+tar czf s4.tgz fx.mod fx.ilbm fx.lha fx.png long.txt
+Echo >s4.log "tar czf rc $RC"
+tar cjf s4.tbz fx.mod fx.ilbm fx.lha fx.png long.txt
+Echo >>s4.log "tar cjf rc $RC"
+tar tzf s4.tgz >>s4.log
+gzip -9 -c long.txt >s4.gz
+gunzip -c s4.gz >s4.txt
+bzip2 -c long.txt >s4.bz2
+bunzip2 -c s4.bz2 >>s4.txt
+cat long.txt long.txt >s4.want
+diff -q s4.want s4.txt >>s4.log
+Echo >>s4.log "round trip rc $RC"
+ps -l >s4.ps
+grep -c "32768 .** ps$" s4.ps >>s4.log
+Stack 16384
+Type s4.log

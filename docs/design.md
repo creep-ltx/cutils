@@ -106,6 +106,14 @@ manager.
   68000 libnix and a crash at start). `--gc-sections` also crashed them: the
   library is an archive instead, so a command links only the parts it uses.
 - **Small**: dos.library and libnix's malloc only; no stdio, no printf.
+- **Stack: 32 KB of its own** (2026-10-16): `unsigned long __stack = 32768` in lib/cu.c and
+  `-Wl,-u,___stkinit` in LDFLAGS make libnix's startup (swapstack.o) swap to a 32 KB stack
+  when the Shell gave less (kept when it gave more; Resident works; no memory lost, Avail
+  FLUSH over 10 runs). Before it, on the Shell's default 4 KB, `tar czf` reset the machine
+  and man's viewer wrote below its stack (miniz's huffman table 5.5 KB, bzip2's code lengths
+  5.2 KB and sort 4.7 KB, tail -f 4.1 KB, man's draw chain 6 KB, measured with -fstack-usage).
+  tests/cases/stack.t runs the big ones on 4 KB. Deep recursion still checks
+  `cu_stackleft()`; big buffers still go on the heap.
 - **Safe** (from the E family, cp mv rm): non-destructive by default (`-f` to
   replace), metadata (protection, date, filenote) kept like `Copy CLONE`, roots
   refused, links never followed into, trees walked with explicit lists on the

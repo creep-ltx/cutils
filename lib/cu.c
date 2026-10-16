@@ -2,6 +2,15 @@
 #include <stdlib.h>
 #include "cu.h"
 
+/* Every command runs on a stack of at least 32 KB: libnix's startup
+ * (swapstack.o, linked by -u ___stkinit in the Makefile) swaps to one of
+ * that size when the Shell gave less. The Shell's default is 4 KB, and
+ * some frames alone are bigger (miniz's huffman table 5.5 KB, bzip2's
+ * code lengths 5.2 KB, tail -f 4.1 KB, man's draw chain 6 KB): on 4 KB
+ * they wrote below the stack, and tar czf reset the machine. A bigger
+ * stack set with Stack is kept. */
+unsigned long __stack = 32768;
+
 int cu_rc;
 int cu_silent;
 BPTR cu_out;

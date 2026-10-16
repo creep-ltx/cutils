@@ -7,7 +7,7 @@
 AMIGA   = $(HOME)/opt/amiga
 CC      = $(AMIGA)/bin/m68k-amigaos-gcc
 CFLAGS  = -Os -m68020 -noixemul -resident32 -fomit-frame-pointer -fno-common -fbbb=- -Wall -Wno-pointer-sign -Ilib -Ithird_party/emu68
-LDFLAGS = -m68020 -noixemul -resident32 -s
+LDFLAGS = -m68020 -noixemul -resident32 -s -Wl,-u,___stkinit   # a 32 KB stack (lib/cu.c)
 CMDS    = cat head tail wc grep tee cp mv rm mkdir touch ls find du df sort uniq cut tr xargs diff which date basename dirname seq file stat ln chmod man ps kill free uptime top ctop tar gzip gunzip bzip2 bunzip2 unxz unzstd sed wget
 LIB     = build/libcu.a
 LIBOBJ  = build/cu.o build/cu_each.o build/cu_in.o build/cu_tree.o build/cu_walk.o build/cu_colours.o build/regex.o build/cu_lines.o build/cu_date.o build/cu_prot.o build/tui.o build/cu_tasks.o build/cu_cpu.o build/cu_pi.o build/cu_long.o \

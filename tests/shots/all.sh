@@ -13,6 +13,5 @@ PR=1.AmigaOS3.2:T/demo/MyGame ./shot.sh files 8 '!CD MyGame' 'ls' 'ls -la' 'ls -
 ./shot.sh top 12 '!Run >NIL: C:Wait 120' 'top'
 ./shot.sh ctop 14 'ctop'
 ./shot.sh wget 6 '!CD RAM:' 'wget http://127.0.0.1:8481/hello.txt' 'wget http://127.0.0.1:8481/slow.bin'
-# man last: ending CTerm with man open resets the Amiga (TODO.md 2)
 ./shot.sh man 8 'man ls'
 kill $WEB 2>/dev/null

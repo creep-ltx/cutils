@@ -26,5 +26,4 @@ theme, csh as the Shell, topaz 8. To make them again after a command's output ch
 `rig.sh` is CTerm's test rig (`~/Projects/CTerm/tests/rig.sh`) with this tree's `bin/`
 and pages added; `demo.sh` makes the files the pictures show. Each `shot.sh` types the
 commands in a new CTerm, grabs the screen with wasabi, cuts off the empty rows, and ends
-CTerm. man's picture is taken last, because ending CTerm with man open resets the Amiga
-([TODO.md](../../TODO.md), entry 2); `shot.sh` stops when a Software Failure requester is up.
+CTerm; it stops when a Software Failure requester is up.

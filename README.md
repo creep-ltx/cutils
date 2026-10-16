@@ -123,9 +123,8 @@ an A1200 (PiStorm, Emu68, OS 3.2.3) and pass their test cases in FS-UAE
 (`tests/run.sh`). Some are also checked against the real thing: sed against GNU
 sed, tar against GNU tar, sort against C:Sort, wget against aminet.net over https.
 
-**Known bugs** are in [TODO.md](TODO.md). The worst: `tar` can crash the machine when it
-creates an archive on the default 4 KB Shell stack. Until that is fixed, give it more
-first: `Stack 32768`.
+Every command runs on a stack of its own of 32 KB when the Shell gives less (the default
+is 4 KB), so none needs a `Stack` command first. Open bugs and decisions: [TODO.md](TODO.md).
 
 ## Building and testing
 

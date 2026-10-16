@@ -5,10 +5,6 @@ Back to the [README](../../README.md).
 
 ![file finds what each file is; tar lists a .tgz made on Linux](../images/archives.png)
 
-> **Known bug:** tar can crash the machine when it *creates* an archive with the Shell's
-> default 4 KB stack ([TODO.md](../../TODO.md), entry 1). Until it is fixed, run
-> `Stack 32768` first. Listing and unpacking are not affected.
-
 ## Two jobs
 
 **tar bundles** files and drawers into one stream, with their names, dates and

@@ -14,7 +14,7 @@ if [ "$1" = start ] || [ "$1" = put ]; then
   cp "$CU"/bin/* "$H/T/CU/"
   cp -r "$CU/man/english/CUtils" "$H/T/Man/english/"
   grep -q 'SYS:T/CU' "$H/S/User-Startup" || printf 'Path SYS:T/CU ADD\nAssign MAN: SYS:T/Man\n' >> "$H/S/User-Startup"
-  # mode= is the hex display id; a failed own screen is saved as wb (CTerm TODO.md 1),
+  # mode= is the hex display id; before CTerm 0.3b51 a failed own screen was saved as wb,
   # so this is written again every time
   P="$H/Prefs/Env-Archive/CTerm.prefs"
   [ -f "$P" ] || printf 'scrollbar=0\nutf8=1\n' > "$P"

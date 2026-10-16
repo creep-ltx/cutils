@@ -17,4 +17,4 @@ printf -- '-s--rwed 2026-10-16 00:00:00.00 \n' > $G/Install.uaem
 printf 'MyGame 0.3\n\nA small game.\n' > $G/ReadMe.txt
 printf '#include <stdio.h>\nint main(void) { return 0; }\n' > $G/src/main.c
 printf 'int score;\n' > $G/src/score.c; printf 'extern int score;\n' > $G/src/game.h
-tar czf MyGame.tgz --exclude='*.uaem' --owner=0 --group=0 MyGame   # made on the PC (TODO.md 1)
+tar czf MyGame.tgz --exclude='*.uaem' --owner=0 --group=0 MyGame   # made on the PC, as a download would be
