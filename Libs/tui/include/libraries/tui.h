@@ -5,8 +5,16 @@
  * mode.
  *
  * TuiOpen() gives each program its own struct Tui; every call takes it.
- * Draw into the grid (TuiPut, TuiFill), then TuiFlush() sends only what
+ * Draw into the grid (TuiPut for Latin-1 text, TuiPutUTF8 for UTF-8,
+ * TuiPutC one character, TuiFill), then TuiFlush() sends only what
  * changed. TuiWait() gives one event at a time.
+ *
+ * Characters: UTF-8 in CTerm. A terminal with only Latin-1 (a plain
+ * console) gets the nearest it has: box lines as - | +, a full block as
+ * a reversed space, shades as : and #, accented letters without the
+ * accent, quotes and dashes as ' " -, arrows as < > ^ v. Wide (CJK,
+ * emoji) and combining characters are ? everywhere: they would move the
+ * rest of the line.
  *
  * The rule of a library: a function's place in the table never moves.
  * New calls are added at the end of tui.sfd and the version goes up. */
@@ -17,13 +25,15 @@
 #include <dos/dos.h>
 
 #define TUINAME    "tui.library"
-#define TUIVERSION 1                /* the version this header describes */
+#define TUIVERSION 2                /* the version this header describes */
 
 /* colours: the ANSI sixteen (CTerm's theme colours), TC_DEFAULT the
  * terminal's own (its background picture shows through), TC_X(n) one of
- * xterm's 256 (CTerm; a plain console gets the nearest of its own) */
+ * xterm's 256, TC_RGB(r, g, b) any 24-bit colour (version 2). CTerm shows
+ * them as they are; a plain console gets the nearest of its own. */
 #define TC_DEFAULT 16
 #define TC_X(n)    (0x100 | (n))
+#define TC_RGB(r, g, b) (0x1000000 | (((r) & 255) << 16) | (((g) & 255) << 8) | ((b) & 255))
 /* attributes (italic, strike and dim only where CTerm draws them) */
 #define TA_BOLD    1
 #define TA_UNDER   2

@@ -100,4 +100,8 @@ typedef ULONG _sfdc_vararg;
       LP5NR(0x90, TuiRaw , struct Tui *, ___t, a0, LONG, ___col, d0, LONG, ___row, d1, CONST_STRPTR, ___s, a1, LONG, ___n, d2,\
       , TUI_BASE_NAME)
 
+#define TuiPutUTF8(___t, ___col, ___row, ___s, ___len, ___fg, ___bg, ___attr) \
+      LP8(0x96, LONG, TuiPutUTF8 , struct Tui *, ___t, a0, LONG, ___col, d0, LONG, ___row, d1, CONST_STRPTR, ___s, a1, LONG, ___len, d2, LONG, ___fg, d3, LONG, ___bg, d4, LONG, ___attr, d5,\
+      , TUI_BASE_NAME)
+
 #endif /* !_INLINE_TUI_H */

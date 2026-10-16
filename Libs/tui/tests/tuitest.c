@@ -49,18 +49,25 @@ static void draw(void)
         tui_put(2 + i * 3, 3, "   ", 3, 7, i, 0);
     for (i = 0; i < 24 && 2 + i * 2 < w - 2; i++)
         tui_put(2 + i * 2, 4, "  ", 2, 7, TC_X(196 + i), 0);
-    y = 6;
+    for (i = 0; i < w - 4; i++) {           /* version 2: 24-bit */
+        int v = i * 255 / (w - 5);
+        tui_put(2 + i, 5, " ", 1, 7, TC_RGB(v, 64, 255 - v), 0);
+    }
+    y = 7;
     tui_put(2, y, "bold", 4, 7, TC_DEFAULT, TA_BOLD);
     tui_put(8, y, "under", 5, 7, TC_DEFAULT, TA_UNDER);
     tui_put(15, y, "reverse", 7, 7, TC_DEFAULT, TA_REV);
     tui_put(24, y, "italic", 6, 7, TC_DEFAULT, TA_ITAL);
     tui_put(32, y, "dim", 3, 7, TC_DEFAULT, TA_DIM);
     tui_put(37, y, "strike", 6, 7, TC_DEFAULT, TA_STRIKE);
-    { static const char l1[] = "Latin-1: \xe5\xe4\xf6 \xc5\xc4\xd6 \xe9"; tui_put(2, 7, l1, sizeof(l1) - 1, 6, TC_DEFAULT, 0); }
-    tui_putc(22, 7, 0x2588, 2, TC_DEFAULT, 0);         /* a block: CTerm draws it */
-    tui_putc(23, 7, 0x2591, 2, TC_DEFAULT, 0);
-    for (i = 0; i < 6 && 9 + i < tui_rows - 2; i++)
-        tui_put(2, 9 + i, log[i], strlen(log[i]), i ? 8 : 11, TC_DEFAULT, 0);
+    { static const char l1[] = "Latin-1: \xe5\xe4\xf6 \xc5\xc4\xd6 \xe9"; tui_put(2, 8, l1, sizeof(l1) - 1, 6, TC_DEFAULT, 0); }
+    /* version 2: UTF-8 text, and its nearest in a Latin-1 console */
+    i = tui_pututf8(2, 9, "UTF-8: \u250c\u2500\u2510\u2502 \u2588\u2593\u2592\u2591 \u201cq\u201d \u2014 "
+                    "\u0141\u00f3d\u017a \u0160koda \u2192\u2190\u2191 \u2713 \u2026 \u28ff \u20ac \u4e2d", -1,
+                    TC_RGB(255, 200, 80), TC_DEFAULT, 0);
+    tui_pututf8(2 + i + 1, 9, "\xe5 (bad UTF-8: Latin-1)", -1, 8, TC_DEFAULT, 0);
+    for (i = 0; i < 6 && 11 + i < tui_rows - 2; i++)
+        tui_put(2, 11 + i, log[i], strlen(log[i]), i ? 8 : 11, TC_DEFAULT, 0);
     tui_put(2, tui_rows - 2, "q or Esc: quit", 14, 8, TC_DEFAULT, 0);
 }
 

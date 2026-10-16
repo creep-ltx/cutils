@@ -37,6 +37,7 @@ void tui_close(void);           /* everything back as it was */
 #define tui_keyafter()    TuiKeyAfter(tui_h, (CONST_STRPTR)tui_keymsg)
 #define tui_put(c, r, s, l, f, b, a)   TuiPut(tui_h, c, r, (CONST_STRPTR)(s), l, f, b, a)
 #define tui_putc(c, r, ch, f, b, a)    TuiPutC(tui_h, c, r, ch, f, b, a)
+#define tui_pututf8(c, r, s, l, f, b, a) TuiPutUTF8(tui_h, c, r, (CONST_STRPTR)(s), l, f, b, a)  /* version 2 */
 #define tui_fill(c, r, w, ch, f, b, a) TuiFill(tui_h, c, r, w, ch, f, b, a)
 #define tui_clear()       TuiClear(tui_h)
 #define tui_cursor(c, r, on) TuiCursor(tui_h, c, r, on)

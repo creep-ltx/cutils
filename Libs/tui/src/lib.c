@@ -72,6 +72,9 @@ static void L_Dirty(REG(a0, struct Tui *t), REG(d0, LONG col), REG(d1, LONG row)
 static void L_Raw(REG(a0, struct Tui *t), REG(d0, LONG col), REG(d1, LONG row), REG(a1, CONST_STRPTR s),
                   REG(d2, LONG n))
 { TuiRaw(t, col, row, s, n); }
+static LONG L_PutUTF8(REG(a0, struct Tui *t), REG(d0, LONG col), REG(d1, LONG row), REG(a1, CONST_STRPTR s),
+                      REG(d2, LONG len), REG(d3, LONG fg), REG(d4, LONG bg), REG(d5, LONG at))
+{ return TuiPutUTF8(t, col, row, s, len, fg, bg, at); }
 
 /* in tui.sfd's order, after exec's four: never reorder, only add */
 static const APTR functable[] = {
@@ -82,6 +85,8 @@ static const APTR functable[] = {
     (APTR)L_Fill, (APTR)L_Clear, (APTR)L_Cursor, (APTR)L_Flush,
     (APTR)L_Redraw, (APTR)L_Resized, (APTR)L_Title, (APTR)L_Wait,
     (APTR)L_Beep, (APTR)L_Box, (APTR)L_Dirty, (APTR)L_Raw,
+    /* version 2 */
+    (APTR)L_PutUTF8,
     (APTR)-1
 };
 

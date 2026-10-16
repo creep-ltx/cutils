@@ -43,9 +43,11 @@ build/libtui.a: build/core.o
 
 # the old tui_* names (include/tui.h) over the library, or over libtui.a
 build/glue.o: src/glue.c include/tui.h include/libraries/tui.h
+	@mkdir -p build
 	$(CC) $(CFLAGS) -c $< -o $@
 
 build/glue_static.o: src/glue.c include/tui.h include/libraries/tui.h
+	@mkdir -p build
 	$(CC) $(CFLAGS) -DTUI_STATIC -c $< -o $@
 
 build/libtuiglue.a: build/glue.o

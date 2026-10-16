@@ -2,7 +2,8 @@
  * tui.library (lib.c puts the calls in its jump table), or straight into
  * a program (TUI_STATIC, include/tui.h). Grown from Ahiru's terminal mode
  * (Ahiru src/term.c), then CUtils lib/tui.c, with Markdown's italic, dim,
- * strike, TuiDirty and TuiRaw merged in (2026-10-16).
+ * strike, TuiDirty and TuiRaw merged in (2026-10-16). Version 2: 24-bit
+ * colour, TuiPutUTF8, and the nearest character for a Latin-1 console.
  *
  * Everything a program's terminal needs lives in its own struct (Priv,
  * from TuiOpen): the library is shared, so nothing may be global.
@@ -47,9 +48,13 @@ unsigned long strlen(const char *);
 
 typedef struct {
     ULONG c;
-    UWORD fg, bg;                /* 0-15, TC_DEFAULT, or TC_X(n) */
-    UBYTE at, pad;
+    ULONG fg, bg;                /* 0-15, TC_DEFAULT, TC_X(n) or TC_RGB(r, g, b) */
+    UBYTE at, pad[3];
 } Cell;
+
+/* cellable()'s answer: show it reversed (a full block in a plain console
+ * is a reversed space) */
+#define FB_REV 0x80000000UL
 
 typedef struct {
     struct Tui pub;              /* what the program reads: first */
@@ -168,8 +173,83 @@ void TuiRedraw(struct Tui *t)
     if (!p->tsusp) outs(p, "\x1b[0m\x1b[H\x1b[J");
 }
 
+/* Latin Extended-A (U+0100-017F) without its accents: Czech, Polish,
+ * Turkish... names still read in a Latin-1 console */
+static const char latinA[] =
+    "AaAaAaCcCcCcCcDd" "DdEeEeEeEeEeGgGg" "GgGgHhHhIiIiIiIi" "IiIiJjKkkLlLlLlL"
+    "lLlNnNnNnnNnOoOo" "OoOoRrRrRrSsSsSs" "SsTtTtTtUuUuUuUu" "UuUuWwYyYZzZzZzs";
+
+/* a character beyond Latin-1, for a terminal that has only Latin-1 (a
+ * plain console): the nearest it has, else '?' */
+static ULONG fallback(ULONG c)
+{
+    if (c >= 0x100 && c < 0x180) return (UBYTE)latinA[c - 0x100];
+    if (c >= 0x2500 && c < 0x2580) {            /* box lines */
+        switch (c) {
+        case 0x2500: case 0x2501: case 0x2504: case 0x2505: case 0x2508: case 0x2509:
+        case 0x254C: case 0x254D: case 0x2550: case 0x2574: case 0x2576: case 0x2578:
+        case 0x257A: case 0x257C: case 0x257E:
+            return '-';
+        case 0x2502: case 0x2503: case 0x2506: case 0x2507: case 0x250A: case 0x250B:
+        case 0x254E: case 0x254F: case 0x2551: case 0x2575: case 0x2577: case 0x2579:
+        case 0x257B: case 0x257D: case 0x257F:
+            return '|';
+        case 0x2571: return '/';
+        case 0x2572: return '\\';
+        case 0x2573: return 'X';
+        }
+        return '+';
+    }
+    if (c >= 0x2580 && c < 0x25A0) {            /* blocks and shades */
+        if (c == 0x2588) return FB_REV | ' ';
+        if (c == 0x2591) return ':';
+        if (c == 0x2592 || c == 0x2593) return '#';
+        if (c == 0x2580 || c == 0x2594) return '"';
+        if (c == 0x2584 || c == 0x2581 || c == 0x2582 || c == 0x2583) return '_';
+        return '#';
+    }
+    if (c >= 0x2800 && c < 0x2900) return c == 0x2800 ? ' ' : ':';  /* braille */
+    switch (c) {
+    case 0x2010: case 0x2011: case 0x2012: case 0x2013: case 0x2014: case 0x2015:
+    case 0x2212: case 0x2043:
+        return '-';
+    case 0x2018: case 0x2019: case 0x201A: case 0x201B: case 0x2032:
+        return '\'';
+    case 0x201C: case 0x201D: case 0x201E: case 0x201F: case 0x2033:
+        return '"';
+    case 0x2039: case 0x2190: case 0x25C0: case 0x25C2: case 0x25C4: case 0x2264:
+        return '<';
+    case 0x203A: case 0x2192: case 0x25B6: case 0x25B8: case 0x25BA: case 0x2265:
+    case 0x279C: case 0x27A4:
+        return '>';
+    case 0x2191: case 0x25B2: case 0x25B4: return '^';
+    case 0x2193: case 0x25BC: case 0x25BE: return 'v';
+    case 0x2194: case 0x2195: return '+';
+    case 0x2022: case 0x2219: case 0x22C5: case 0x2027: case 0x25E6: return 0xB7;
+    case 0x2026: return '.';
+    case 0x25CF: case 0x25CB: case 0x25C9: case 0x25EF: return 'o';
+    case 0x25A0: case 0x25A1: case 0x25AA: case 0x25AB: return '#';
+    case 0x2605: case 0x2606: case 0x2731: case 0x273B: return '*';
+    case 0x2713: case 0x2714: case 0x2611: return 'v';
+    case 0x2717: case 0x2718: case 0x2612: return 'x';
+    case 0x20AC: return 'E';
+    case 0x2122: return 'T';
+    case 0x2248: return '~';
+    case 0x2260: return '#';
+    case 0x221E: return '8';
+    case 0x00A0: return ' ';
+    case 0x2000: case 0x2001: case 0x2002: case 0x2003: case 0x2004: case 0x2005:
+    case 0x2006: case 0x2007: case 0x2008: case 0x2009: case 0x200A: case 0x202F:
+    case 0x205F: case 0x3000:
+        return ' ';
+    }
+    return '?';
+}
+
 /* a code point a cell can show: wide (CJK, emoji) and combining marks
- * would move everything after them, controls would steer the terminal */
+ * would move everything after them, controls would steer the terminal;
+ * beyond Latin-1 without UTF-8: the nearest (fallback). FB_REV may be
+ * or'ed in. */
 static ULONG cellable(Priv *p, ULONG c)
 {
     if (c < 32 || (c >= 0x7F && c < 0xA0)) return '?';
@@ -179,21 +259,61 @@ static ULONG cellable(Priv *p, ULONG c)
         (c >= 0xFF00 && c < 0xFF61) || (c >= 0xFFE0 && c < 0xFFE7) ||
         (c >= 0xD800 && c < 0xE000) || c >= 0x1F000 || c == 0x200B ||
         c == 0x200D || c == 0xFEFF)
-        return '?';
-    if (!p->pub.UTF8 && c > 0xFF) return '?';
+        return c == 0x3000 && !p->pub.UTF8 ? ' ' : '?';
+    if (!p->pub.UTF8 && c > 0xFF) return fallback(c);
     return c;
+}
+
+/* one cell (col and row on the grid) */
+static void setcell(Priv *p, Cell *q, ULONG c, LONG fg, LONG bg, LONG attr)
+{
+    c = cellable(p, c);
+    if (c & FB_REV) {
+        c &= ~FB_REV;
+        attr ^= TA_REV;
+    }
+    q->c = c;
+    q->fg = (ULONG)fg;
+    q->bg = (ULONG)bg;
+    q->at = (UBYTE)attr;
 }
 
 void TuiPutC(struct Tui *t, LONG col, LONG row, ULONG c, LONG fg, LONG bg, LONG attr)
 {
     Priv *p = P(t);
-    Cell *q;
     if (!p || col < 0 || row < 0 || col >= p->gw || row >= p->gh) return;
-    q = &p->want[row * p->gw + col];
-    q->c = cellable(p, c);
-    q->fg = (UWORD)fg;
-    q->bg = (UWORD)bg;
-    q->at = (UBYTE)attr;
+    setcell(p, &p->want[row * p->gw + col], c, fg, bg, attr);
+}
+
+/* s as UTF-8 (len < 0: up to its 0), one cell a character; a byte that
+ * is not good UTF-8 counts as Latin-1, so Latin-1 text still shows.
+ * Returns how many cells the text takes (also what fell off the edges) */
+LONG TuiPutUTF8(struct Tui *t, LONG col, LONG row, CONST_STRPTR s, LONG len, LONG fg, LONG bg, LONG attr)
+{
+    Priv *p = P(t);
+    const UBYTE *b = (const UBYTE *)s, *e;
+    LONG n = 0;
+    if (!s) return 0;
+    if (len < 0) len = strlen((const char *)s);
+    e = b + len;
+    while (b < e) {
+        ULONG c = *b++;
+        if (c >= 0xC2 && c <= 0xF4) {
+            int k = c < 0xE0 ? 1 : c < 0xF0 ? 2 : 3, i;
+            ULONG u = c & (0x3F >> k);
+            for (i = 0; i < k && b + i < e && (b[i] & 0xC0) == 0x80; i++)
+                u = (u << 6) | (b[i] & 0x3F);
+            /* whole, and not too long a way to write a smaller one */
+            if (i == k && u >= (k == 1 ? 0x80UL : k == 2 ? 0x800UL : 0x10000UL) && u < 0x110000) {
+                c = u;
+                b += k;
+            }
+        }
+        if (p && row >= 0 && row < p->gh && col + n >= 0 && col + n < p->gw)
+            setcell(p, &p->want[row * p->gw + col + n], c, fg, bg, attr);
+        n++;
+    }
+    return n;
 }
 
 /* s as Latin-1 bytes (a program with UTF-8 text decodes it itself and
@@ -211,9 +331,9 @@ void TuiPut(struct Tui *t, LONG col, LONG row, CONST_STRPTR s, LONG len, LONG fg
     q = &p->want[row * p->gw + col];
     for (i = 0; i < len; i++, q++) {
         unsigned char c = s[i];
-        q->c = c >= 32 && c < 0x7F ? c : cellable(p, c);
-        q->fg = (UWORD)fg;
-        q->bg = (UWORD)bg;
+        q->c = c >= 32 && c < 0x7F ? c : cellable(p, c);   /* never FB_REV */
+        q->fg = (ULONG)fg;
+        q->bg = (ULONG)bg;
         q->at = (UBYTE)attr;
     }
 }
@@ -227,11 +347,15 @@ void TuiFill(struct Tui *t, LONG col, LONG row, LONG w, ULONG c, LONG fg, LONG b
     if (col < 0) { w += col; col = 0; }
     if (w > p->gw - col) w = p->gw - col;
     c = cellable(p, c);
+    if (c & FB_REV) {
+        c &= ~FB_REV;
+        attr ^= TA_REV;
+    }
     q = &p->want[row * p->gw + col];
     for (i = 0; i < w; i++, q++) {
         q->c = c;
-        q->fg = (UWORD)fg;
-        q->bg = (UWORD)bg;
+        q->fg = (ULONG)fg;
+        q->bg = (ULONG)bg;
         q->at = (UBYTE)attr;
     }
 }
@@ -273,9 +397,44 @@ static int to16(int x)
     return hi >= 4 ? x + 8 : x;
 }
 
+/* a 24-bit colour (TC_RGB) as the nearest of the 256: the 6 x 6 x 6
+ * cube or the grey ramp, whichever is closer */
+static int rgbto256(int c)
+{
+    static const UBYTE lv[6] = { 0, 95, 135, 175, 215, 255 };
+    int r = (c >> 16) & 255, g = (c >> 8) & 255, b = c & 255, i, ri, gi, bi, y, gy, dc, dg;
+    ri = r < 48 ? 0 : r < 115 ? 1 : (r - 35) / 40;
+    gi = g < 48 ? 0 : g < 115 ? 1 : (g - 35) / 40;
+    bi = b < 48 ? 0 : b < 115 ? 1 : (b - 35) / 40;
+    y = (r + g + b) / 3;
+    i = y > 238 ? 23 : y < 8 ? 0 : (y - 3) / 10;
+    gy = 8 + 10 * i;
+    dc = (r - lv[ri]) * (r - lv[ri]) + (g - lv[gi]) * (g - lv[gi]) + (b - lv[bi]) * (b - lv[bi]);
+    dg = (r - gy) * (r - gy) + (g - gy) * (g - gy) + (b - gy) * (b - gy);
+    return dg < dc ? 232 + i : 16 + 36 * ri + 6 * gi + bi;
+}
+
+/* any colour as one of the sixteen (a plain console) */
+static int to16any(int c)
+{
+    if (c & 0x1000000) return to16(rgbto256(c));
+    if (c & 0x100) return to16(c & 0xFF);
+    return c & 15;
+}
+
 static void sgrcol(Priv *p, int c, int base)
 {
     if (c == TC_DEFAULT) { outnum(p, base + 9); return; }
+    if (c & 0x1000000) {            /* CTerm: 24-bit */
+        outnum(p, base + 8);
+        outs(p, ";2;");
+        outnum(p, (c >> 16) & 255);
+        out(p, ";", 1);
+        outnum(p, (c >> 8) & 255);
+        out(p, ";", 1);
+        outnum(p, c & 255);
+        return;
+    }
     if (c & 0x100) {                /* CTerm: the 256 */
         outnum(p, base + 8);
         outs(p, ";5;");
@@ -301,8 +460,8 @@ static void sgr(Priv *p, int fg, int bg, int at)
         if (at & TA_STRIKE) outs(p, ";9");
         if (at & TA_DIM) outs(p, ";2");
     } else {
-        fg = fg == TC_DEFAULT ? 1 : wbpen[fg & 0x100 ? to16(fg & 0xFF) : fg];
-        bg = bg == TC_DEFAULT ? TC_DEFAULT : wbpen[bg & 0x100 ? to16(bg & 0xFF) : bg];
+        fg = fg == TC_DEFAULT ? 1 : wbpen[to16any(fg)];
+        bg = bg == TC_DEFAULT ? TC_DEFAULT : wbpen[to16any(bg)];
     }
     out(p, ";", 1);
     sgrcol(p, fg, 30);

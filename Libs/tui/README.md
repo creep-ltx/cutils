@@ -15,9 +15,10 @@ UTF-8.
 | | |
 |---|---|
 | **Drawing** | a grid of cells; `TuiFlush` sends only what changed |
-| **Colours** | the ANSI 16, xterm's 256 (`TC_X(n)`), the terminal's own; nearest Workbench pens in a plain console |
+| **Colours** | the ANSI 16, xterm's 256 (`TC_X(n)`), any 24-bit colour (`TC_RGB(r, g, b)`), the terminal's own; the nearest Workbench pens in a plain console |
 | **Attributes** | bold, underline, reverse, italic; dim and strike in CTerm |
-| **Characters** | Latin-1 everywhere, UTF-8 in CTerm; box lines (rounded in CTerm, ASCII elsewhere) |
+| **Text** | `TuiPut` for Latin-1, `TuiPutUTF8` for UTF-8 (a stray Latin-1 byte still shows; returns the width), `TuiPutC` one character |
+| **Characters** | UTF-8 in CTerm. A plain console (Latin-1 only) gets the nearest it has: box lines as `- \| +`, a full block as a reversed space, shades as `: #`, `Łódź` as `Lódz`, quotes and dashes as `' " -`, arrows as `< > ^ v`, `€` as `E`. Wide (CJK, emoji) and combining characters are `?` everywhere. |
 | **Keys** | the Amiga console's codes and xterm's, with Shift/Alt/Ctrl; F1-F12, Help |
 | **Mouse** | press, release, drag, wheel, with modifiers (CTerm) |
 | **Pastes** | bracketed, handed over in one piece |
@@ -35,9 +36,10 @@ UTF-8.
 #include <proto/tui.h>
 struct Library *TuiBase;
 
-TuiBase = OpenLibrary(TUINAME, 1);
+TuiBase = OpenLibrary(TUINAME, 2);  /* 2: TC_RGB and TuiPutUTF8 */
 t = TuiOpen(0);                     /* NULL: not a terminal */
 TuiPut(t, 0, 0, "hello", 5, 7, TC_DEFAULT, TA_BOLD);
+TuiPutUTF8(t, 0, 1, "Łódź", -1, TC_RGB(255, 200, 80), TC_DEFAULT, 0);   /* version 2 */
 TuiFlush(t);
 TuiWait(t, &ev, -1, 0, NULL);
 TuiClose(t);
@@ -79,6 +81,14 @@ their own name there).
 | `tests/tuitest.c` | draws everything, logs events: `tuitest` or `tuitest SECS` |
 
 ## State
+
+**2.0b1, 2026-10-16:** 24-bit colour, `TuiPutUTF8`, and the nearest character in a Latin-1
+console, tested in FS-UAE: CTerm on its own 256-colour screen (a smooth 24-bit gradient), a plain
+console (every stand-in above), and a version 1 program run on the version 2 library. The
+library is 12.9 KB. **Known gap, in CTerm:** with an Amiga bitmap font CTerm draws characters
+beyond Latin-1 itself, and its own stand-in table (CTerm `src/draw.c` `fallback()`) has no
+accented letters or `€` yet, so `Ł Š ź €` show as `?` there (with TrueType they show). The
+library sends the right UTF-8; noted for the CTerm session in CTerm's TODO.md.
 
 **1.0b1, 2026-10-16**, tested in FS-UAE (A1200, OS 3.2.1, `amiga-test a1200-32-mui5`): in CTerm
 and in a plain Shell window at the same time (each its own size and kind), keys (Ctrl, Shift,

@@ -1,4 +1,4 @@
-==id $Id: tui.sfd 1.0 $
+==id $Id: tui.sfd 2.0 $
 * tui.library: the toolkit for programs inside the terminal.
 * The order below is the library's jump table: never move a line,
 * only add new ones at the end (and raise the version).
@@ -31,4 +31,6 @@ VOID TuiBeep(struct Tui * t) (a0)
 ULONG TuiBox(struct Tui * t, LONG which) (a0,d0)
 VOID TuiDirty(struct Tui * t, LONG col, LONG row, LONG w, LONG h) (a0,d0,d1,d2,d3)
 VOID TuiRaw(struct Tui * t, LONG col, LONG row, CONST_STRPTR s, LONG n) (a0,d0,d1,a1,d2)
+* --- version 2 ---
+LONG TuiPutUTF8(struct Tui * t, LONG col, LONG row, CONST_STRPTR s, LONG len, LONG fg, LONG bg, LONG attr) (a0,d0,d1,a1,d2,d3,d4,d5)
 ==end

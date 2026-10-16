@@ -13,6 +13,8 @@ static BPTR conin;
 
 #ifndef TUI_STATIC
 struct Library *TuiBase;
+#define STR_(x) #x
+#define VERS STR_(TUIVERSION)      /* the version this program was built against */
 static int told;
 
 /* tui.library, opened once; missing: said once, on the error stream */
@@ -23,7 +25,7 @@ static int haslib(void)
     if (!TuiBase && !told) {
         struct Process *me = (struct Process *)FindTask(NULL);
         BPTR err = me->pr_CES ? me->pr_CES : Output();
-        static const char m[] = "needs tui.library (version 1 or newer) in LIBS:\n";
+        static const char m[] = "needs tui.library (version " VERS " or newer) in LIBS:\n";
         told = 1;
         if (err) Write(err, (APTR)m, sizeof(m) - 1);
     }
