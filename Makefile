@@ -1,10 +1,12 @@
 # CUtils - Unix-style commands for AmigaOS 3.2, in C. Cross-built with bebbo's
-# gcc (~/opt/amiga), -fbbb=- as the whole terminal family
+# m68k-amigaos-gcc, -fbbb=- as the whole terminal family
 # (Knowledge/amiga/toolchain-and-testing.md). -resident32: pure, so each can
 # be made Resident (the p bit is set by make).
 # make test: tests/run.sh in the private FS-UAE (CTerm/tests/files/uae.sh).
 
-AMIGA   = $(HOME)/opt/amiga
+# Bebbo's m68k-amigaos-gcc: set AMIGA to where it is installed, otherwise it is
+# looked for in the usual places (/opt/amiga, its own default, then ~/opt/amiga).
+AMIGA   ?= $(firstword $(wildcard /opt/amiga $(HOME)/opt/amiga))
 CC      = $(AMIGA)/bin/m68k-amigaos-gcc
 CFLAGS  = -Os -m68020 -noixemul -resident32 -fomit-frame-pointer -fno-common -fbbb=- -Wall -Wno-pointer-sign -Ilib -Ithird_party/emu68
 LDFLAGS = -m68020 -noixemul -resident32 -s -Wl,-u,___stkinit   # a 32 KB stack (lib/cu.c)
@@ -127,3 +129,10 @@ clean:
 .PHONY: all test clean
 
 .SECONDARY:
+
+# clangd's include paths (not tracked: they depend on where AMIGA is)
+compile_flags.txt:
+	printf '%s\n' --target=m68k-unknown-linux-gnu -I$(AMIGA)/m68k-amigaos/ndk-include \
+	  -I$(AMIGA)/m68k-amigaos/sys-include -I$(AMIGA)/m68k-amigaos/include \
+	  -I$(AMIGA)/m68k-amigaos/libnix/include -D__amigaos__ -D__stdargs= -D__regargs= \
+	  -D__saveds= -D__chip= -Ilib > $@

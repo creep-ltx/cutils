@@ -11,10 +11,10 @@ this replaces them.
 **Open bugs: [TODO.md](../TODO.md)** at the top of the repo. Read it first, fix from the top, add what you find.
 
 **Parallel sessions (set up 2026-10-15, the user's wish):** CTerm, csh and CUtils may each have a
-session running at the same time. Stay in your own repo: CTerm's session owns `~/Projects/CTerm`,
-csh's owns `~/Projects/CShell`, CUtils' owns `~/Projects/CUtils`; a change another one needs is a
+session running at the same time. Stay in your own repo: CTerm's session owns `../CTerm`,
+csh's owns `../CShell`, CUtils' owns this repo; a change another one needs is a
 note in its design.md or a message, never an edit there. Shared things:
-- **FS-UAE on port 1240** (`~/Projects/CTerm/tests/files/uae.sh`) is used by all three: work in
+- **FS-UAE on port 1240** (`../CTerm/tests/files/uae.sh`) is used by all three: work in
   your own RAM: drawer (CUtils: `S=x tests/run.sh`), never `uae.sh stop`/restart it without
   asking the others (`ListAgents`, then a message); a crash there - tell the others before restarting.
 - **The A1200** (Wasabi): message the others before installing, rebooting or restarting wasabid;
@@ -35,7 +35,7 @@ mismatch list below, xz/zstd packing, FileColours in Ahiru/Maki; later btop, awk
 manager.
 
 - Build: `make` (bebbo's gcc in `~/opt/amiga`), binaries in `bin/`.
-- Test: start the private FS-UAE (`~/Projects/CTerm/tests/files/uae.sh start`, port
+- Test: start the private FS-UAE (`../CTerm/tests/files/uae.sh start`, port
   1240), then `tests/run.sh [name...]`. Cases are `tests/cases/NAME.t` (format in
   run.sh's head), test files in `tests/files/`. `S=x tests/run.sh` uses RAM:cux /
   RAM:cutx, so several sessions can test at once. After a crash: `tests/uae-restart.sh`.
@@ -80,7 +80,7 @@ manager.
   diff's algorithm was also fuzzed on Linux against GNU diff (a stand-in for cu.h and
   the dos calls): the same unified output in 400 of 400 random pairs, valid patches and
   minimal edit counts everywhere; -i -w -b -B agree with GNU in 2800 runs.
-- Backed up to the NAS: remote `nas` = /mnt/nas/home/Code/CUtils.git.
+- Backed up to the NAS: remote `nas` (a bare repo on the NAS).
 
 ## The rules every command keeps
 

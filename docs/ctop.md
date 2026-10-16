@@ -2,7 +2,7 @@
 
 The user runs btop on the PC; ctop is that, showing the Amiga, inside the terminal (a CTerm tab or pane, or
 any console window). Name and home chosen by the user 2026-10-16 (ctop, in CUtils). The original idea and
-btop's look, from screenshots of the user's btop 1.4.7: ~/Projects/Ideas/amiga-btop.md and its pictures/.
+btop's look, from screenshots of the user's btop 1.4.7: the ideas notes (amiga-btop.md) and its pictures/.
 
 ## What it shows
 

@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # rig.sh start|stop|put|reset - the FS-UAE for the README's screenshots: CTerm's rig
-# (~/Projects/CTerm/tests/rig.sh) as instance cutils-docs on port 1255, a 68030 with
+# (CTerm repo, tests/rig.sh; CTERM_DIR, default the sibling ../CTerm) as instance cutils-docs on port 1255, a 68030 with
 # AmiSSL; this tree's bin/ in SYS:T/CU (on the path in CTerm's tabs) and its pages in
 # SYS:T/Man (MAN:); CTerm on its own 256-colour full screen with the Nord theme; the
 # demo files of demo.sh in SYS:T/demo.
 RIG=cutils-docs PORT=1255 SSL=1 CONF=030
-. "$HOME/Projects/CTerm/tests/rig.sh"
-D=$HOME/Projects/CTerm                   # rig.sh's put copies CTerm from here
+CTERM_DIR=$(cd "${CTERM_DIR:-$(dirname "$0")/../../../CTerm}" && pwd) || exit 1
+. "$CTERM_DIR/tests/rig.sh"
+D=$CTERM_DIR                             # rig.sh's put copies CTerm from here
 CU=$(cd "$(dirname "$0")/../.." && pwd)
 if [ "$1" = start ] || [ "$1" = put ]; then
   H=$(amiga-test $M dir "${A[@]}") || exit 1

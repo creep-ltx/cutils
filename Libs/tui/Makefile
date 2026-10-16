@@ -1,5 +1,5 @@
 # tui.library - the toolkit for programs inside the terminal (README.md).
-# Cross-built with bebbo's gcc (~/opt/amiga), -fbbb=- as the whole
+# Cross-built with Bebbo's m68k-amigaos-gcc, -fbbb=- as the whole
 # terminal family (Knowledge/amiga/toolchain-and-testing.md).
 #
 #   make            the library three times (below), libtui.a (the toolkit
@@ -18,7 +18,9 @@
 # 68000 one also takes libnix 1.3's plain multiply and divide (no
 # utility.library). The build fails if any other C library code gets in.
 
-AMIGA   = $(HOME)/opt/amiga
+# Bebbo's m68k-amigaos-gcc: set AMIGA to where it is installed, otherwise it is
+# looked for in the usual places (/opt/amiga, its own default, then ~/opt/amiga).
+AMIGA   ?= $(firstword $(wildcard /opt/amiga $(HOME)/opt/amiga))
 CC      = $(AMIGA)/bin/m68k-amigaos-gcc
 OBJDUMP = $(AMIGA)/bin/m68k-amigaos-objdump
 SFDC    = $(AMIGA)/bin/sfdc
@@ -64,7 +66,7 @@ check060: build/060/tui.library
 # own flags (pure, resident, TUI_STATIC; the user's rule: no LIBS: file for
 # CUtils). This builds them that way too, so a change that would break CUtils
 # fails here; after changing core.c also run
-# make -C ~/Projects/CUtils bin/man bin/top bin/ctop
+# make -C ../.. bin/man bin/top bin/ctop
 cutilscheck: src/core.c src/glue.c include/tui.h include/libraries/tui.h
 	@mkdir -p build/cutils
 	$(CC) $(CFLAGS) -resident32 -DTUI_STATIC -c src/core.c -o build/cutils/core.o

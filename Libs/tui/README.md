@@ -117,7 +117,7 @@ cleared again when the cursor moved off. That is the first sixel seen through th
 Ahiru 0.3b5 moved onto it (`CFile/ahiru/src/term.c`).
 
 **Programs on it (2026-10-16):** Maki 0.1b4, Markdown 0.1b3, Sumi 0.2b4 (each about 8 KB
-smaller; now in `~/Projects/TextTools`), Ahiru 0.3b5, tested in FS-UAE in CTerm: Maki on a file and a pipe, Markdown viewing and
+smaller; now in the TextTools repo), Ahiru 0.3b5, tested in FS-UAE in CTerm: Maki on a file and a pipe, Markdown viewing and
 editing, Sumi saving a file. The old `tui_*` names are safe before `tui_open` and after
 `tui_close`, as the built-in copy was: Markdown lays its file out first, and through the
 library that call crashed (an empty `TuiBase`, guru `8000000B`) until `include/tui.h`
@@ -146,5 +146,5 @@ dependencies). They may compile `src/core.c` in statically instead of their own 
 **`core.c` must always build outside the library** too. Since 2026-10-16 (the user's yes)
 **CUtils' man, top and ctop compile `src/core.c` and `src/glue.c` into themselves** with CUtils'
 flags (`-resident32 -DTUI_STATIC`, never `TUI_LIB`); `make` here checks that (`cutilscheck`), and
-after a change run `make -C ~/Projects/CUtils bin/man bin/top bin/ctop` too. CFile has no terminal mode. Markdown's pictures through
+after a change run `make -C ../.. bin/man bin/top bin/ctop` (in CUtils) too. CFile has no terminal mode. Markdown's pictures through
 `TuiRaw` not tried yet (Ahiru's are, on the A1200). Then grow it: keys files, themes, `ENVARC:FileColours`, lists, menus, a file picker.

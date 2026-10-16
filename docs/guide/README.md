@@ -23,7 +23,7 @@ theme, csh as the Shell, topaz 8. To make them again after a command's output ch
     tests/shots/shot.sh NAME WAIT CMD...  one picture, on a rig that is up
     tests/shots/rig.sh stop
 
-`rig.sh` is CTerm's test rig (`~/Projects/CTerm/tests/rig.sh`) with this tree's `bin/`
+`rig.sh` is CTerm's test rig (`../CTerm/tests/rig.sh`) with this tree's `bin/`
 and pages added; `demo.sh` makes the files the pictures show. Each `shot.sh` types the
 commands in a new CTerm, grabs the screen with wasabi, cuts off the empty rows, and ends
 CTerm; it stops when a Software Failure requester is up.

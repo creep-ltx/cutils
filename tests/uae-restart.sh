@@ -5,7 +5,8 @@ cd "$(dirname "$0")"
 exec 9>/tmp/cutils-uae.lock
 flock 9
 ./w ping >/dev/null 2>&1 && { echo "up"; exit 0; }   # another session did it
-U=~/Projects/CTerm/tests/files/uae.sh
+CTERM_DIR=${CTERM_DIR:-../../CTerm}       # relative to tests/ (cd above)
+U=$CTERM_DIR/tests/files/uae.sh
 $U stop
 ($U start >/tmp/uaestart.log 2>&1 9>&- &)   # 9>&-: else the emulator keeps the lock for ever
 sleep 5
