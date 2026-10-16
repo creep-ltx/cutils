@@ -24,7 +24,7 @@
 #include "czc.h"
 
 const char *cu_name = "unzstd";
-static const char version[] = "$VER: unzstd 0.1b1 (14.10.2026)";
+static const char version[] = "$VER: unzstd 0.1b2 (16.10.2026)";
 
 CZ_READERS(&cz_zstd);
 

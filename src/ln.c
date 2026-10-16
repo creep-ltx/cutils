@@ -20,7 +20,7 @@
 #include "cu.h"
 
 const char *cu_name = "ln";
-static const char version[] = "$VER: ln 0.1b1 (14.10.2026)";
+static const char version[] = "$VER: ln 0.1b2 (16.10.2026)";
 
 static int o_soft, o_force, o_verbose;
 

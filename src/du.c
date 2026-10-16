@@ -20,7 +20,7 @@
 #include "cu.h"
 
 const char *cu_name = "du";
-static const char version[] = "$VER: du 0.1b1 (14.10.2026)";
+static const char version[] = "$VER: du 0.1b2 (16.10.2026)";
 
 static int o_all, o_human, o_total;
 static LONG maxd = 0x7fffffff;

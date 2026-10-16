@@ -15,7 +15,7 @@
 #include "cu.h"
 
 const char *cu_name = "uptime";
-static const char version[] = "$VER: uptime 0.1b1 (14.10.2026)";
+static const char version[] = "$VER: uptime 0.1b2 (16.10.2026)";
 
 struct Device *TimerBase;
 

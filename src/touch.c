@@ -15,7 +15,7 @@
 #include "cu.h"
 
 const char *cu_name = "touch";
-static const char version[] = "$VER: touch 0.1b2 (14.10.2026)";
+static const char version[] = "$VER: touch 0.1b3 (16.10.2026)";
 
 static int o_nocreate;
 static struct DateStamp when;

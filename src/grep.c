@@ -22,7 +22,7 @@
 #include "cu.h"
 
 const char *cu_name = "grep";
-static const char version[] = "$VER: grep 0.1b1 (14.10.2026)";
+static const char version[] = "$VER: grep 0.1b2 (16.10.2026)";
 
 static int o_ext, o_fixed, o_icase, o_inv, o_word, o_line, o_count, o_list, o_nlist,
            o_num, o_only, o_quiet, o_rec, o_names, colour;

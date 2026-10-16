@@ -62,7 +62,7 @@ Options may come before or after the URLs. `wget ?` shows the usage.
   0 = wait for ever).
 - **-U** AGENT
   what wget calls itself to the server (User-Agent). Normally
-  `wget/0.1b1 (AmigaOS; CUtils)`.
+  `wget/0.1b2 (AmigaOS; CUtils)`.
 - **--header** LINE
   an extra line for the request, `"Name: value"`, as often as needed
   (`"--header=Name: value"` with the quotes round it all). A Host or

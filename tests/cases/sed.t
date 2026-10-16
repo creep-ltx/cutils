@@ -1,7 +1,7 @@
 $ sed ?
 sed [-nEsuz] [-i[SUFFIX]] [-l N] [-e SCRIPT]... [-f FILE]... [SCRIPT] [file ...]
 $ sed --version
-sed 0.1b1 (15.10.2026)
+sed 0.1b2 (16.10.2026)
 $ sed s/a/X/ sed-abc
 X
 b

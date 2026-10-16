@@ -52,7 +52,7 @@
 #include "cu.h"
 
 const char *cu_name = "find";
-static const char version[] = "$VER: find 0.1b1 (14.10.2026)";
+static const char version[] = "$VER: find 0.1b2 (16.10.2026)";
 
 enum { N_AND, N_OR, N_NOT, N_TRUE, N_FALSE, N_NAME, N_TYPE, N_SIZE, N_NEWER, N_MTIME,
        N_MMIN, N_EMPTY, N_PRINT, N_PRINT0, N_PRUNE, N_DELETE, N_EXEC };

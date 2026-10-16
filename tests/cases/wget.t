@@ -3,7 +3,7 @@ $ rm -rf wg wi SYS:T/cuw{S}
 $ MakeDir wg wi SYS:T/cuw{S} SYS:T/cuw{S}/c SYS:T/cuw{S}/n
 ? 0
 $ wget -V
-wget 0.1b1 (15.10.2026)
+wget 0.1b2 (16.10.2026)
 ? 0
 $ wget
 wget: missing URL (wget ? for the usage)
@@ -151,7 +151,7 @@ X-One: 1
 X-Two: two
 ? 0
 $ wget -q -O - http://127.0.0.1:8471/headers | grep Agent
-User-Agent: wget/0.1b1 (AmigaOS; CUtils)
+User-Agent: wget/0.1b2 (AmigaOS; CUtils)
 ? 0
 $ wget -q -O - --header "Host: other.example" http://127.0.0.1:8471/headers | grep Host
 Host: other.example

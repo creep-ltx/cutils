@@ -39,7 +39,7 @@
 #include <utility/tagitem.h>
 
 const char *cu_name = "man";
-static const char version[] = "$VER: man 0.1b3 (15.10.2026)";
+static const char version[] = "$VER: man 0.1b4 (16.10.2026)";
 
 struct LocaleBase *LocaleBase;
 

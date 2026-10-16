@@ -43,7 +43,7 @@
 #include "cu.h"
 
 const char *cu_name = "diff";
-static const char version[] = "$VER: diff 0.1b1 (14.10.2026)";
+static const char version[] = "$VER: diff 0.1b2 (16.10.2026)";
 
 static int o_uni, o_brief, o_same, o_icase, o_allws, o_ws, o_blank, o_text, o_rec, o_new, colour;
 static LONG o_ctx = 3;

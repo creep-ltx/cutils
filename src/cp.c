@@ -34,7 +34,7 @@
 #include "cu.h"
 
 const char *cu_name = "cp";
-static const char version[] = "$VER: cp 0.1b1 (14.10.2026)";
+static const char version[] = "$VER: cp 0.1b2 (16.10.2026)";
 
 static int o_force, o_rec, toisdir;
 static const char *to;

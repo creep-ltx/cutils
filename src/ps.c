@@ -21,7 +21,7 @@
 #include "cu.h"
 
 const char *cu_name = "ps";
-static const char version[] = "$VER: ps 0.1b1 (14.10.2026)";
+static const char version[] = "$VER: ps 0.1b2 (16.10.2026)";
 
 #define MAXT 256
 #define MAXARGS_PAT 8

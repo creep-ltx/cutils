@@ -13,7 +13,7 @@
 #include "cu.h"
 
 const char *cu_name = "cat";
-static const char version[] = "$VER: cat 0.1b1 (14.10.2026)";
+static const char version[] = "$VER: cat 0.1b2 (16.10.2026)";
 
 static int o_num, o_nonblank, o_squeeze, o_ends, o_show;
 static LONG lineno;

@@ -35,7 +35,7 @@
 #include "cu.h"
 
 const char *cu_name = "ls";
-static const char version[] = "$VER: ls 0.3b1 (14.10.2026)";
+static const char version[] = "$VER: ls 0.3b2 (16.10.2026)";
 
 #define MAXARGS 64
 

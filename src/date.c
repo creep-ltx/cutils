@@ -36,7 +36,7 @@
 #include "cu.h"
 
 const char *cu_name = "date";
-static const char version[] = "$VER: date 0.1b1 (14.10.2026)";
+static const char version[] = "$VER: date 0.1b2 (16.10.2026)";
 
 static BPTR out;
 static char obuf[512];

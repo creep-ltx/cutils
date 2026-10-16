@@ -31,7 +31,7 @@
 #include "cu.h"
 
 const char *cu_name = "sed";
-static const char version[] = "$VER: sed 0.1b1 (15.10.2026)";
+static const char version[] = "$VER: sed 0.1b2 (16.10.2026)";
 
 /* ---- growing buffers ---- */
 

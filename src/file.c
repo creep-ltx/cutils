@@ -28,7 +28,7 @@
 #include "cu.h"
 
 const char *cu_name = "file";
-static const char version[] = "$VER: file 0.1b1 (14.10.2026)";
+static const char version[] = "$VER: file 0.1b2 (16.10.2026)";
 
 #define HEAD 4096
 

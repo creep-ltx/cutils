@@ -11,7 +11,7 @@
 #include "cu.h"
 
 const char *cu_name = "wc";
-static const char version[] = "$VER: wc 0.1b1 (14.10.2026)";
+static const char version[] = "$VER: wc 0.1b2 (16.10.2026)";
 
 static int o_l, o_w, o_c, o_L, nfiles, bare;
 static ULONG tl, tw, tc, tL;

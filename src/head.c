@@ -12,7 +12,7 @@
 #include "cu.h"
 
 const char *cu_name = "head";
-static const char version[] = "$VER: head 0.1b1 (14.10.2026)";
+static const char version[] = "$VER: head 0.1b2 (16.10.2026)";
 
 static LONG count = 10;
 static int bytes, names, first = 1;

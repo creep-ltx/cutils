@@ -16,7 +16,7 @@
 #include "cu.h"
 
 const char *cu_name = "uniq";
-static const char version[] = "$VER: uniq 0.1b1 (14.10.2026)";
+static const char version[] = "$VER: uniq 0.1b2 (16.10.2026)";
 
 static int o_count, o_dup, o_uni, o_icase;
 static LONG o_fields, o_chars, o_width = -1;

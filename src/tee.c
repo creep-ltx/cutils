@@ -11,7 +11,7 @@
 #include "cu.h"
 
 const char *cu_name = "tee";
-static const char version[] = "$VER: tee 0.1b2 (14.10.2026)";
+static const char version[] = "$VER: tee 0.1b3 (16.10.2026)";
 
 #define MAXF 32
 

@@ -19,7 +19,7 @@
  *   -S  the server's headers   -t N  tries (3; 0 = no limit): a lost
  *   connection, a timeout and a 5xx are tried again, going on from where
  *   it stopped; a 4xx never   -T SECS  how long a connection may be silent
- *   (30; 0 = for ever)   -U AGENT  the User-Agent ("wget/0.1b1 (AmigaOS;
+ *   (30; 0 = for ever)   -U AGENT  the User-Agent ("wget/0.1b2 (AmigaOS;
  *   CUtils)")   --header H  an extra header line, as often as wanted
  *   (Host or User-Agent given this way replace wget's own)   -i FILE  the
  *   URLs from FILE, one a line (- = the input; # starts a comment)
@@ -63,9 +63,9 @@
 #include "wget.h"
 
 const char *cu_name = "wget";
-static const char version[] = "$VER: wget 0.1b1 (15.10.2026)";
+static const char version[] = "$VER: wget 0.1b2 (16.10.2026)";
 
-#define AGENT "wget/0.1b1 (AmigaOS; CUtils)"
+#define AGENT "wget/0.1b2 (AmigaOS; CUtils)"
 #define FIONBIO_ 0x8004667EUL      /* _IOW('f', 126, long): not in the headers */
 #define IBUF 16384                 /* recv buffer */
 #define OBUF 32768                 /* writes gathered */

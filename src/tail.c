@@ -14,7 +14,7 @@
 #include "cu.h"
 
 const char *cu_name = "tail";
-static const char version[] = "$VER: tail 0.1b2 (14.10.2026)";
+static const char version[] = "$VER: tail 0.1b3 (16.10.2026)";
 
 static LONG count = 10;
 static int bytes, from, follow, names, first = 1, nfiles;

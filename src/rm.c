@@ -26,7 +26,7 @@
 #include "cu.h"
 
 const char *cu_name = "rm";
-static const char version[] = "$VER: rm 0.1b1 (14.10.2026)";
+static const char version[] = "$VER: rm 0.1b2 (16.10.2026)";
 
 static int o_rec, o_force, o_verbose;
 static struct FileInfoBlock *fib;

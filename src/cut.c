@@ -15,7 +15,7 @@
 #include "cu.h"
 
 const char *cu_name = "cut";
-static const char version[] = "$VER: cut 0.1b1 (14.10.2026)";
+static const char version[] = "$VER: cut 0.1b2 (16.10.2026)";
 
 #define MAXR 64
 static LONG rlo[MAXR], rhi[MAXR];     /* ranges, 1-based, hi < 0: to the end */

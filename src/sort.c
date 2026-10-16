@@ -45,7 +45,7 @@
 #include "cu.h"
 
 const char *cu_name = "sort";
-static const char version[] = "$VER: sort 0.1b1 (14.10.2026)";
+static const char version[] = "$VER: sort 0.1b2 (16.10.2026)";
 
 #define USAGE "sort [-bdfhiMnrsuVcC] [-k POS1[,POS2]] [-t SEP] [-o FILE] [file ...] | FROM [TO] [COLSTART n] [CASE] [NUMERIC] [LEXICOGRAPHIC] [DESCENDING] [SKIPBLANKS]"
 

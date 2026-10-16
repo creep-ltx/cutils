@@ -66,7 +66,7 @@
 #include "cz.h"
 
 const char *cu_name = "tar";
-static const char version[] = "$VER: tar 0.1b1 (14.10.2026)";
+static const char version[] = "$VER: tar 0.1b2 (16.10.2026)";
 
 #define USAGE "tar -c|-x|-t [-vzjJakmOp] [-f ARCHIVE] [-C DRAWER] [--strip-components N] [--exclude PAT] [-T FILE] [name ...]"
 #define NAMEMAX 1024             /* the longest member name handled */
