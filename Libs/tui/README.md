@@ -57,15 +57,39 @@ their own name there).
 
 ## Building
 
-`make` (bebbo's gcc in `~/opt/amiga`): `build/tui.library`, the glue and static libraries, and
-`build/tuitest` / `tuitest_static`. After adding a call to `tui.sfd`: `make headers`.
+`make` (bebbo's gcc in `~/opt/amiga`): the library three times, the glue and static libraries,
+`build/tuitest` / `tuitest_static` and `build/tuibench`. `make check060` proves the 060 build
+has no 64-bit multiply or divide.
+
+**Which library to install** as `LIBS:tui.library`:
+
+| File | For | Why its own |
+|---|---|---|
+| `build/000/tui.library` | 68000, 68010 (every Amiga) | no 32-bit multiply/divide in hardware |
+| `build/020/tui.library` | 68020, 68030, 68040, Emu68 | the fastest there (a 68030 runs 020 code as it is) |
+| `build/060/tui.library` | 68060 | the 020 build divides by constants with a 64-bit multiply, which the 060 only emulates (a trap each time); this one does not |
+
+Measured with `tuibench 20` in CTerm, FS-UAE (2026-10-16), ms, two runs averaged:
+
+| Machine | Build | Drawing | Finding changes | Full screen (mostly CTerm) |
+|---|---|---|---|---|
+| 68EC020 | 000 | 7970 | 6260 | 17630 |
+| 68EC020 | **020** | **6470** | **6000** | 15820 |
+| 68EC020 | 060 | 6660 | 6020 | 15230 |
+| 68030 | 000 | 8850 | 6270 | 17800 |
+| 68030 | **020** | **6900** | **6080** | 15640 |
+| 68030 | 060 | 7090 | 6080 | 15470 |
+
+The 68000 build costs a 68020/030 about a quarter of the drawing speed, so it is not the one
+for them. A real 68060 was not measured (FS-UAE has none set up). After adding a call to `tui.sfd`: `make headers`.
 
 - **The table order is for ever.** `tui.sfd` and `functable` in `src/lib.c` list the calls in
   the same order; new ones go at the end of both, and `TUI_REVISION` goes up (0.2, 0.3...;
   from 1.0 on, `TUI_VERSION`). Programs check `lib_Revision` while the version is 0.
 - The library has no C library inside (`-nostartfiles -nostdlib`, its own `memcpy` and friends).
   The build fails if libnix code gets into it.
-- 68020 and up, AmigaOS 2.04+ calls (made for OS 3.2 and CTerm, like the rest of the family).
+- AmigaOS 2.04+ (dos.library 37 calls); any processor, from the three builds above. Tested on the
+  A600 test machine (68000, Workbench 2.05) in a plain console: drawing, keys, quitting.
 - Stack: the deepest call chain is under 0.5 KB (`-fstack-usage`), so a 4 KB caller is fine.
 
 ## Files
@@ -92,6 +116,8 @@ checked for it.
 
 **Version numbers:** 0.x while the calls may still grow; `lib_Version` is 0 and
 `lib_Revision` counts (0.1, 0.2...), so programs open version 0 and check the revision.
+
+**0.2b2, 2026-10-16:** three builds (000, 020, 060), same code, measured above.
 
 **0.2b1, 2026-10-16:** 24-bit colour, `TuiPutUTF8`, and the nearest character in a Latin-1
 console, tested in FS-UAE: CTerm on its own 256-colour screen (a smooth 24-bit gradient), a plain

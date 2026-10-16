@@ -4,5 +4,5 @@
  * A1200. */
 #define TUI_VERSION  0
 #define TUI_REVISION 2
-#define TUI_VERSTR   "0.2b1"
+#define TUI_VERSTR   "0.2b2"
 #define TUI_DATE     "16.10.2026"
