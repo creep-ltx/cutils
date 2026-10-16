@@ -35,7 +35,7 @@
 #include "tui.h"
 
 const char *cu_name = "ctop";
-static const char version[] = "$VER: ctop 0.1b2 (16.10.2026)";
+static const char version[] = "$VER: ctop 0.1b3 (16.10.2026)";
 
 struct Device *TimerBase;
 

@@ -10,7 +10,7 @@ CFLAGS  = -Os -m68020 -noixemul -resident32 -fomit-frame-pointer -fno-common -fb
 LDFLAGS = -m68020 -noixemul -resident32 -s -Wl,-u,___stkinit   # a 32 KB stack (lib/cu.c)
 CMDS    = cat head tail wc grep tee cp mv rm mkdir touch ls find du df sort uniq cut tr xargs diff which date basename dirname seq file stat ln chmod man ps kill free uptime top ctop tar gzip gunzip bzip2 bunzip2 unxz unzstd sed wget
 LIB     = build/libcu.a
-LIBOBJ  = build/cu.o build/cu_each.o build/cu_in.o build/cu_tree.o build/cu_walk.o build/cu_colours.o build/regex.o build/cu_lines.o build/cu_date.o build/cu_prot.o build/tui.o build/cu_tasks.o build/cu_cpu.o build/cu_pi.o build/cu_long.o \
+LIBOBJ  = build/cu.o build/cu_each.o build/cu_in.o build/cu_tree.o build/cu_walk.o build/cu_colours.o build/regex.o build/cu_lines.o build/cu_date.o build/cu_prot.o build/tui_core.o build/tui_glue.o build/cu_tasks.o build/cu_cpu.o build/cu_pi.o build/cu_long.o \
           $(CZOBJ) $(TPOBJ)
 
 # the squeezers (lib/cz*.c, cz_int.h says how a command gets only its own
@@ -60,6 +60,26 @@ build/zs_%.o: third_party/zstd/common/%.c
 build/zs_%.o: third_party/zstd/decompress/%.c
 	@mkdir -p build
 	$(CC) $(TPFLAGS) -c $< -o $@
+
+# the terminal toolkit: tui.library's own source (Libs/tui/src/core.c), built into
+# man, top and ctop (TUI_STATIC: no LIBS:tui.library needed) with CUtils' flags
+# (-resident32), so a fix in Libs/tui reaches both. Libs/tui keeps core.c building
+# outside the library (its README).
+TUI     = Libs/tui
+TUICMDS = man top ctop
+TUIDEPS = $(TUI)/include/tui.h $(TUI)/include/libraries/tui.h
+
+build/tui_core.o: $(TUI)/src/core.c $(TUIDEPS)
+	@mkdir -p build
+	$(CC) -I$(TUI)/include -I$(TUI)/src $(CFLAGS) -c $< -o $@
+
+build/tui_glue.o: $(TUI)/src/glue.c $(TUIDEPS)
+	@mkdir -p build
+	$(CC) -I$(TUI)/include -I$(TUI)/src -DTUI_STATIC $(CFLAGS) -c $< -o $@
+
+$(TUICMDS:%=build/cmd_%.o): build/cmd_%.o: src/%.c lib/cu.h $(TUIDEPS)
+	@mkdir -p build
+	$(CC) -I$(TUI)/include -DTUI_STATIC $(CFLAGS) -c $< -o $@
 
 build/cmd_%.o: src/%.c lib/cu.h lib/cz.h lib/czc.h
 	@mkdir -p build
