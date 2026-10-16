@@ -30,7 +30,7 @@ CPUS    = 000 020 060
 ARITH_000 = $(NIX13)
 
 all: $(foreach c,$(CPUS),build/$(c)/tui.library) build/libtui.a build/libtuiglue.a \
-     build/libtuiglue_static.a build/tuitest build/tuitest_static build/tuibench
+     build/libtuiglue_static.a build/tuitest build/tuitest_static build/tuibench cutilscheck
 
 build/start.o: src/start.s
 	@mkdir -p build
@@ -59,6 +59,16 @@ check060: build/060/tui.library
 	@! $(OBJDUMP) -m m68k:68060 -d build/060/core.o build/060/lib.o | grep -E '\s(mul|div)[su]l\s+[^ ]*,%?d[0-7],%?d[0-7]' \
 	    || (echo "build/060 has a 64-bit multiply or divide"; false)
 	@echo "build/060: no 64-bit multiply or divide"
+
+# CUtils' man, top and ctop build core.c and glue.c into themselves with its
+# own flags (pure, resident, TUI_STATIC; the user's rule: no LIBS: file for
+# CUtils). This builds them that way too, so a change that would break CUtils
+# fails here; after changing core.c also run
+# make -C ~/Projects/CUtils bin/man bin/top bin/ctop
+cutilscheck: src/core.c src/glue.c include/tui.h include/libraries/tui.h
+	@mkdir -p build/cutils
+	$(CC) $(CFLAGS) -resident32 -DTUI_STATIC -c src/core.c -o build/cutils/core.o
+	$(CC) $(CFLAGS) -resident32 -DTUI_STATIC -c src/glue.c -o build/cutils/glue.o
 
 # the same core, for a program that wants it inside (no library needed)
 build/core.o: src/core.c include/libraries/tui.h
@@ -101,4 +111,4 @@ headers: tui.sfd
 clean:
 	rm -rf build
 
-.PHONY: all headers clean check060
+.PHONY: all headers clean check060 cutilscheck

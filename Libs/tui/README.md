@@ -143,5 +143,8 @@ the library thrown out by `Avail FLUSH` and loaded again. Not yet on the A1200.
 
 **Next:** CUtils' man/top/ctop stay independent (the user, 2026-10-16: CUtils has no `LIBS:`
 dependencies). They may compile `src/core.c` in statically instead of their own copy, so
-**`core.c` must always build outside the library** too (`TUI_STATIC`, `build/libtui.a`). CFile has no terminal mode. Markdown's pictures through
+**`core.c` must always build outside the library** too. Since 2026-10-16 (the user's yes)
+**CUtils' man, top and ctop compile `src/core.c` and `src/glue.c` into themselves** with CUtils'
+flags (`-resident32 -DTUI_STATIC`, never `TUI_LIB`); `make` here checks that (`cutilscheck`), and
+after a change run `make -C ~/Projects/CUtils bin/man bin/top bin/ctop` too. CFile has no terminal mode. Markdown's pictures through
 `TuiRaw` not tried yet (Ahiru's are, on the A1200). Then grow it: keys files, themes, `ENVARC:FileColours`, lists, menus, a file picker.
