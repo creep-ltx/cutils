@@ -107,6 +107,12 @@ for them. A real 68060 was not measured (FS-UAE has none set up). After adding a
 
 ## State
 
+**On the A1200 since 2026-10-16 (the user's go):** `LIBS:tui.library` 0.3b1 (the 020 build, Emu68),
+with C:Maki 0.1b4, C:Markdown 0.1b3, C:Sumi 0.2b4 and Work:Utils/Ahiru/Ahiru 0.3b5; the old
+ones kept beside them as `-<version>.bak`. Tried there in CTerm (1280x960, 24-bit): Maki paging,
+Markdown a man page, Sumi typing, Ahiru moving and a **sixel JPEG preview through `TuiRaw`**,
+cleared again when the cursor moved off. That is the first sixel seen through the library.
+
 **0.3b1, 2026-10-16:** `TuiSignal`, `TuiPoll`, `TuiKeyWaiting` (a program's own `Wait()`), `TC_PEN`.
 Ahiru 0.3b5 moved onto it (`CFile/ahiru/src/term.c`).
 
@@ -136,6 +142,5 @@ F-keys, å), mouse clicks, quitting, the static build, a missing library (messag
 the library thrown out by `Avail FLUSH` and loaded again. Not yet on the A1200.
 
 **Next:** CUtils' man/top/ctop (the CUtils session takes it up with the user: it adds a
-`LIBS:` file to commands already installed). CFile has no terminal mode. Not yet seen working:
-a sixel picture through `TuiRaw` (Ahiru's previews showed no picture in FS-UAE with the old or
-the new build; Markdown's pictures not tried). Then grow it: keys files, themes, `ENVARC:FileColours`, lists, menus, a file picker.
+`LIBS:` file to commands already installed). CFile has no terminal mode. Markdown's pictures through
+`TuiRaw` not tried yet (Ahiru's are, on the A1200). Then grow it: keys files, themes, `ENVARC:FileColours`, lists, menus, a file picker.
