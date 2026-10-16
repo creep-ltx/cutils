@@ -63,18 +63,31 @@ static int mbget(ULONG tag, ULONG arg, ULONG *v0, ULONG *v1)
     return 1;
 }
 
+static void probe(void)
+{
+    APTR key;
+    if (probed) return;
+    probed = 1;
+    cu_dt = OpenResource("devicetree.resource");
+    if (cu_dt && (key = DT_OpenKey((CONST_STRPTR)"/emu68"))) DT_CloseKey(key);
+    else cu_dt = NULL;           /* a devicetree without Emu68: not ours */
+    cu_mb = OpenResource("mailbox.resource");
+}
+
+/* Emu68 as Emu68CP and Wasabi find it: devicetree.resource with an
+ * /emu68 node (its custom MOVEC counters are an illegal instruction
+ * anywhere else) */
+int cu_isemu68(void)
+{
+    probe();
+    return cu_dt != NULL;
+}
+
 int cu_pi(CuPi *p)
 {
     ULONG a, b;
     memset(p, 0, sizeof *p);
-    if (!probed) {
-        APTR key;
-        probed = 1;
-        cu_dt = OpenResource("devicetree.resource");
-        if (cu_dt && (key = DT_OpenKey((CONST_STRPTR)"/emu68"))) DT_CloseKey(key);
-        else cu_dt = NULL;       /* a devicetree without Emu68: not ours */
-        cu_mb = OpenResource("mailbox.resource");
-    }
+    probe();
     if (!cu_dt && !cu_mb) return 0;
     if (cu_dt) {
         dtstr("/emu68", "idstring", p->emu68, sizeof p->emu68);

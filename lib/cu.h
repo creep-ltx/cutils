@@ -281,6 +281,7 @@ typedef struct {
     int hasthrottle;
 } CuPi;
 int cu_pi(CuPi *p);                        /* 0: no Pi to ask */
+int cu_isemu68(void);                      /* devicetree.resource with /emu68 */
 int cu_signal(APTR task, ULONG sigs);      /* 0: that task is gone */
 
 #endif

@@ -973,7 +973,7 @@ static void drawnet(int x, int y, int w, int h)
     }
     {
         int ox = x + 1 + gw + 1, ly = y + 1;
-        tui_putc(ox, ly, fancy ? 0x25BC : 'v', g_down[5], TC_DEFAULT, 0);
+        tui_putc(ox, ly, 'v', g_down[5], TC_DEFAULT, TA_BOLD);
         p = sbytes(b, rxrate); sstr(p, "/s");
         text(ox + 2, ly, b, C_TEXT, TA_BOLD);
         if (ly + 1 < y + 1 + half) {
@@ -982,7 +982,7 @@ static void drawnet(int x, int y, int w, int h)
             text(ox + 2, ly + 1, b, C_DIM, 0);
         }
         ly = y + 1 + half;
-        tui_putc(ox, ly, fancy ? 0x25B2 : '^', g_up[5], TC_DEFAULT, 0);
+        tui_putc(ox, ly, '^', g_up[5], TC_DEFAULT, TA_BOLD);
         p = sbytes(b, txrate); sstr(p, "/s");
         text(ox + 2, ly, b, C_TEXT, TA_BOLD);
         if (ly + 1 < y + h - 1) {
@@ -1195,13 +1195,6 @@ static void drawproc(int x, int y, int w, int h, const char *prompt)
     }
 }
 
-#ifdef CTOP_PROF
-static ULONG prof[3];
-#define PT(i, x) do { unsigned long long _a = eclock(NULL); x; prof[i] = (ULONG)(eclock(NULL) - _a); } while (0)
-#else
-#define PT(i, x) x
-#endif
-
 static void drawall(const char *prompt)
 {
     int W = tui_cols, H = tui_rows, cpuh = 0, lw = 0, rest, memh = 0, neth = 0, side;
@@ -1250,15 +1243,7 @@ static void drawall(const char *prompt)
         if (!lw) tui_fill(0, cpuh, W, ' ', C_TEXT, TC_DEFAULT, 0);
         tui_cursor(0, H - 1, 0);
     }
-#ifdef CTOP_PROF
-    {
-        char b[60], *p = b;
-        int i;
-        for (i = 0; i < 3; i++) { p = snum(p, prof[i] / 709); p = sstr(p, i < 2 ? "ms " : "ms"); }
-        text(2, H - 1, b, C_HOT, TA_BOLD);
-    }
-#endif
-    PT(2, tui_flush());
+    tui_flush();
 }
 
 /* ---- help, questions --------------------------------------------------- */
@@ -1408,21 +1393,13 @@ static int run(void)
         if (left <= 0) {
             ULONG now = cu_cpuclock();
             if (!paused) {
-                PT(0, measure());
+                measure();
                 if (now - lastvol >= (ULONG)hz * 10) { readvols(); lastvol = now; }
                 if (haspi && now - lastpi >= (ULONG)hz * 2) { cu_pi(&pi); lastpi = now; }
                 arrange();
                 keepsel();
             } else cu_cpumeasure(tasks, ntasks, share);   /* (keeps the hooks' sums small) */
-            {
-#ifdef CTOP_PROF
-                unsigned long long a = eclock(NULL);
-                drawall(NULL);
-                prof[1] = (ULONG)(eclock(NULL) - a) - prof[2];
-#else
-                drawall(NULL);
-#endif
-            }
+            drawall(NULL);
             next = now + (ULONG)delay10 * hz / 10;
             continue;
         }

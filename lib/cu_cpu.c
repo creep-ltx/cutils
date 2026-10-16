@@ -15,14 +15,11 @@
 #include <exec/semaphores.h>
 #include <hardware/intbits.h>
 #include <devices/timer.h>
-#include <libraries/configvars.h>
 #include <proto/exec.h>
 #include <proto/timer.h>
-#include <proto/expansion.h>
 #include "cu.h"
 
 extern struct Device *TimerBase;
-struct ExpansionBase *ExpansionBase;
 
 #define MAXT CU_MAXTASKS
 #define RING 1024                /* samples kept: 20 s at 50 Hz */
@@ -352,11 +349,7 @@ static void emu68_read(unsigned long long *insn, unsigned long long *cnt, ULONG 
 
 static void emu68_probe(void)
 {
-    if ((ExpansionBase = (struct ExpansionBase *)OpenLibrary("expansion.library", 0))) {
-        emu68 = FindConfigDev(NULL, 0x6d73, 0x21) != NULL;
-        CloseLibrary((struct Library *)ExpansionBase);
-        ExpansionBase = NULL;
-    }
+    emu68 = cu_isemu68();
     if (emu68) { ULONG f; emu68_read(&pinsn, &pcnt, &f); }
 }
 
