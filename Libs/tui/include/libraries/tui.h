@@ -7,7 +7,9 @@
  * TuiOpen() gives each program its own struct Tui; every call takes it.
  * Draw into the grid (TuiPut for Latin-1 text, TuiPutUTF8 for UTF-8,
  * TuiPutC one character, TuiFill), then TuiFlush() sends only what
- * changed. TuiWait() gives one event at a time.
+ * changed. TuiWait() gives one event at a time; a program with a Wait()
+ * of its own (0.3) adds TuiSignal() to it and takes events with TuiPoll(),
+ * after a TuiFlush().
  *
  * Characters: UTF-8 in CTerm. A terminal with only Latin-1 (a plain
  * console) gets the nearest it has: box lines as - | +, a full block as
@@ -26,7 +28,7 @@
 
 #define TUINAME    "tui.library"
 #define TUIVERSION  0               /* the version and revision this header */
-#define TUIREVISION 2               /* describes: 0.2 (OpenLibrary asks for the
+#define TUIREVISION 3               /* describes: 0.2 (OpenLibrary asks for the
                                      * version; while it is 0, check
                                      * lib_Revision for the newer calls) */
 
@@ -37,6 +39,10 @@
 #define TC_DEFAULT 16
 #define TC_X(n)    (0x100 | (n))
 #define TC_RGB(r, g, b) (0x1000000 | (((r) & 255) << 16) | (((g) & 255) << 8) | ((b) & 255))
+/* TC_PEN(n) (0.3): in a plain console the screen's own pen n (0-7) as it
+ * is, not an ANSI colour mapped to the nearest pen (a program that picked
+ * Workbench's pens itself); in CTerm the same as colour n */
+#define TC_PEN(n)  (0x200 | ((n) & 7))
 /* attributes (italic, strike and dim only where CTerm draws them) */
 #define TA_BOLD    1
 #define TA_UNDER   2

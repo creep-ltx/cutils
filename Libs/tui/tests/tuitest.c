@@ -13,6 +13,7 @@
 #include "tui.h"
 
 static char log[6][60];
+static int nkeys;                  /* keys seen: none may be lost */
 
 static void addlog(const char *s)
 {
@@ -42,8 +43,8 @@ static void draw(void)
     int i, w = tui_cols, y;
     tui_clear();
     box(0, 0, w, tui_rows, " tuitest ");
-    sprintf(b, "%d x %d  %s  %s  cell %dx%d", tui_cols, tui_rows,
-            tui_cterm ? "CTerm" : "console", tui_utf8 ? "UTF-8" : "Latin-1", tui_cellw, tui_cellh);
+    sprintf(b, "%d x %d  %s  %s  cell %dx%d  keys %d", tui_cols, tui_rows,
+            tui_cterm ? "CTerm" : "console", tui_utf8 ? "UTF-8" : "Latin-1", tui_cellw, tui_cellh, nkeys);
     tui_put(2, 1, b, strlen(b), 7, TC_DEFAULT, 0);
     for (i = 0; i < 16; i++)
         tui_put(2 + i * 3, 3, "   ", 3, 7, i, 0);
@@ -96,7 +97,7 @@ int main(int argc, char **argv)
         if (e.type == TE_END) break;
         if (e.type == TE_KEY && (e.key == 'q' || e.key == K_ESC)) break;
         switch (e.type) {
-        case TE_KEY: sprintf(b, "key 0x%08x", e.key); break;
+        case TE_KEY: nkeys++; sprintf(b, "key 0x%08x", e.key); break;
         case TE_MOUSE: sprintf(b, "mouse %d at %d,%d mods %x", e.mact, e.col, e.row, e.mods); break;
         case TE_PASTE: sprintf(b, "paste of %ld bytes", e.len); break;
         case TE_RESIZE: tui_resized(); sprintf(b, "resized to %d x %d", tui_cols, tui_rows); break;

@@ -15,7 +15,8 @@ static BPTR conin;
 struct Library *TuiBase;
 #define STR_(x) #x
 #define STR(x) STR_(x)
-#define VERS STR(TUIVERSION) "." STR(TUIREVISION)  /* what this program was built against */
+#define NEEDS 2                         /* the old names need 0.2 (TuiPutUTF8) */
+#define VERS STR(TUIVERSION) "." STR(NEEDS)
 static int told;
 
 /* tui.library, opened once; missing: said once, on the error stream */
@@ -24,7 +25,7 @@ static int haslib(void)
     if (TuiBase) return 1;
     TuiBase = OpenLibrary(TUINAME, TUIVERSION);
     /* 0.x: the revision says which calls are there */
-    if (TuiBase && TuiBase->lib_Version == TUIVERSION && TuiBase->lib_Revision < TUIREVISION) {
+    if (TuiBase && TuiBase->lib_Version == TUIVERSION && TuiBase->lib_Revision < NEEDS) {
         CloseLibrary(TuiBase);
         TuiBase = NULL;
     }

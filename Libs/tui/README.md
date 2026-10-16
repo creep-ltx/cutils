@@ -15,7 +15,7 @@ UTF-8.
 | | |
 |---|---|
 | **Drawing** | a grid of cells; `TuiFlush` sends only what changed |
-| **Colours** | the ANSI 16, xterm's 256 (`TC_X(n)`), any 24-bit colour (`TC_RGB(r, g, b)`), the terminal's own; the nearest Workbench pens in a plain console |
+| **Colours** | the ANSI 16, xterm's 256 (`TC_X(n)`), any 24-bit colour (`TC_RGB(r, g, b)`), the terminal's own; the nearest Workbench pens in a plain console, or a pen exactly (`TC_PEN(n)`, 0.3) |
 | **Attributes** | bold, underline, reverse, italic; dim and strike in CTerm |
 | **Text** | `TuiPut` for Latin-1, `TuiPutUTF8` for UTF-8 (a stray Latin-1 byte still shows; returns the width), `TuiPutC` one character |
 | **Characters** | UTF-8 in CTerm. A plain console (Latin-1 only) gets the nearest it has: box lines as `- \| +`, a full block as a reversed space, shades as `: #`, `Łódź` as `Lódz`, quotes and dashes as `' " -`, arrows as `< > ^ v`, `€` as `E`. Wide (CJK, emoji) and combining characters are `?` everywhere. |
@@ -25,7 +25,7 @@ UTF-8.
 | **Size** | asked at start, followed on resize; the cell size in pixels (CTerm) |
 | **Own screen** | the Shell's history stays clean; suspend/resume for running a command |
 | **Pictures** | `TuiRaw` + `TuiDirty` for sixel and friends (Markdown) |
-| **Waiting** | one `Wait()` for keys, Ctrl-C..F and the program's own signals; never blocks quitting |
+| **Waiting** | one `Wait()` for keys, Ctrl-C..F and the program's own signals; never blocks quitting. A program with a `Wait()` of its own adds `TuiSignal()` and takes events with `TuiPoll()` (0.3) |
 | **The terminal gone** | `TE_END` when a CTerm tab closes, so nothing spins |
 
 ## Using it
@@ -107,8 +107,11 @@ for them. A real 68060 was not measured (FS-UAE has none set up). After adding a
 
 ## State
 
+**0.3b1, 2026-10-16:** `TuiSignal`, `TuiPoll`, `TuiKeyWaiting` (a program's own `Wait()`), `TC_PEN`.
+Ahiru 0.3b5 moved onto it (`CFile/ahiru/src/term.c`).
+
 **Programs on it (2026-10-16):** Maki 0.1b4, Markdown 0.1b3, Sumi 0.2b4 (each about 8 KB
-smaller), tested in FS-UAE in CTerm: Maki on a file and a pipe, Markdown viewing and
+smaller; now in `~/Projects/TextTools`), Ahiru 0.3b5, tested in FS-UAE in CTerm: Maki on a file and a pipe, Markdown viewing and
 editing, Sumi saving a file. The old `tui_*` names are safe before `tui_open` and after
 `tui_close`, as the built-in copy was: Markdown lays its file out first, and through the
 library that call crashed (an empty `TuiBase`, guru `8000000B`) until `include/tui.h`
@@ -132,7 +135,7 @@ and in a plain Shell window at the same time (each its own size and kind), keys 
 F-keys, å), mouse clicks, quitting, the static build, a missing library (message, rc 10), and
 the library thrown out by `Avail FLUSH` and loaded again. Not yet on the A1200.
 
-**Next:** CUtils' man/top/ctop (the CUtils session's call). Ahiru's terminal mode has its own
-older copy (`Ahiru/src/term.c`), but Ahiru is built for the 68000 and the library for the
-68020: either a 68000 build of the library, or Ahiru keeps its copy. CFile has no terminal
-mode. Then grow it: keys files, themes, `ENVARC:FileColours`, lists, menus, a file picker.
+**Next:** CUtils' man/top/ctop (the CUtils session takes it up with the user: it adds a
+`LIBS:` file to commands already installed). CFile has no terminal mode. Not yet seen working:
+a sixel picture through `TuiRaw` (Ahiru's previews showed no picture in FS-UAE with the old or
+the new build; Markdown's pictures not tried). Then grow it: keys files, themes, `ENVARC:FileColours`, lists, menus, a file picker.

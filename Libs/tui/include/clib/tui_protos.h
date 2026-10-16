@@ -4,7 +4,7 @@
 #define CLIB_TUI_PROTOS_H
 
 /*
-**   $VER: tui_protos.h 0.2 $Id: tui.sfd 0.2 $
+**   $VER: tui_protos.h 0.3 $Id: tui.sfd 0.3 $
 **
 **   C prototypes. For use with 32 bit integers only.
 **
@@ -48,6 +48,11 @@ VOID TuiRaw(struct Tui * t, LONG col, LONG row, CONST_STRPTR s, LONG n);
 
 /* --- 0.2 --- */
 LONG TuiPutUTF8(struct Tui * t, LONG col, LONG row, CONST_STRPTR s, LONG len, LONG fg, LONG bg, LONG attr);
+
+/* --- 0.3 --- */
+ULONG TuiSignal(struct Tui * t);
+LONG TuiPoll(struct Tui * t, TuiEv * e);
+LONG TuiKeyWaiting(struct Tui * t);
 
 #ifdef __cplusplus
 }

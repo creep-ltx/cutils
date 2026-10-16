@@ -4,6 +4,8 @@
  * (Ahiru src/term.c), then CUtils lib/tui.c, with Markdown's italic, dim,
  * strike, TuiDirty and TuiRaw merged in (2026-10-16). 0.2: 24-bit
  * colour, TuiPutUTF8, and the nearest character for a Latin-1 console.
+ * 0.3: TuiSignal, TuiPoll and TuiKeyWaiting for a program with a Wait()
+ * of its own (Ahiru), TC_PEN for a console's own pens.
  *
  * Everything a program's terminal needs lives in its own struct (Priv,
  * from TuiOpen): the library is shared, so nothing may be global.
@@ -417,6 +419,7 @@ static int rgbto256(int c)
 /* any colour as one of the sixteen (a plain console) */
 static int to16any(int c)
 {
+    if (c & 0x200) return c & 7;
     if (c & 0x1000000) return to16(rgbto256(c));
     if (c & 0x100) return to16(c & 0xFF);
     return c & 15;
@@ -425,6 +428,7 @@ static int to16any(int c)
 static void sgrcol(Priv *p, int c, int base)
 {
     if (c == TC_DEFAULT) { outnum(p, base + 9); return; }
+    if (c & 0x200) c &= 7;          /* TC_PEN: as colour n where colours are */
     if (c & 0x1000000) {            /* CTerm: 24-bit */
         outnum(p, base + 8);
         outs(p, ";2;");
@@ -460,8 +464,9 @@ static void sgr(Priv *p, int fg, int bg, int at)
         if (at & TA_STRIKE) outs(p, ";9");
         if (at & TA_DIM) outs(p, ";2");
     } else {
-        fg = fg == TC_DEFAULT ? 1 : wbpen[to16any(fg)];
-        bg = bg == TC_DEFAULT ? TC_DEFAULT : wbpen[to16any(bg)];
+        /* TC_PEN: the pen as it is; anything else the nearest pen */
+        fg = fg == TC_DEFAULT ? 1 : fg & 0x200 ? fg & 7 : wbpen[to16any(fg)];
+        bg = bg == TC_DEFAULT ? TC_DEFAULT : bg & 0x200 ? bg & 7 : wbpen[to16any(bg)];
     }
     out(p, ";", 1);
     sgrcol(p, fg, 30);
@@ -1016,6 +1021,56 @@ LONG TuiWait(struct Tui *t, TuiEv *e, LONG us, ULONG extra, ULONG *got)
             }
         }
     }
+}
+
+/* ---- a program with a Wait() of its own (0.3) ------------------------ */
+
+/* the signal to add to the program's Wait(): the key wait goes out (if it
+ * is not out already) and answers within a quarter of a second */
+ULONG TuiSignal(struct Tui *t)
+{
+    Priv *p = P(t);
+    if (!p) return 0;
+    if (!p->ended && !p->tsusp) arm(p, WAITUS);
+    return 1UL << p->rport->mp_SigBit;
+}
+
+/* the next event if there is one (1), else TE_NONE (0) without waiting;
+ * Ctrl-C..F stay the program's own signals */
+LONG TuiPoll(struct Tui *t, TuiEv *e)
+{
+    Priv *p = P(t);
+    if (!p) {
+        memset(e, 0, sizeof(*e));
+        e->type = TE_END;
+        return 1;
+    }
+    if (p->evh == p->evt && !p->ended) collect(p, 0);
+    if (p->evh != p->evt) {
+        *e = p->evq[p->evh];
+        p->evh = (p->evh + 1) % EVQ;
+        return 1;
+    }
+    if (p->ended) {
+        memset(e, 0, sizeof(*e));
+        e->type = TE_END;
+        return 1;
+    }
+    if (!p->tsusp) arm(p, WAITUS);
+    e->type = TE_NONE;
+    return 0;
+}
+
+/* something waiting (a key, a click, the terminal gone): for stopping a
+ * long job; the event stays for TuiPoll */
+LONG TuiKeyWaiting(struct Tui *t)
+{
+    Priv *p = P(t);
+    if (!p || p->ended) return 1;
+    collect(p, 0);
+    if (p->ended) return 1;
+    if (!p->tsusp) arm(p, WAITUS);
+    return p->evh != p->evt;
 }
 
 /* ---- opening and closing ------------------------------------------------ */

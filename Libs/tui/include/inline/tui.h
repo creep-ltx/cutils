@@ -104,4 +104,16 @@ typedef ULONG _sfdc_vararg;
       LP8(0x96, LONG, TuiPutUTF8 , struct Tui *, ___t, a0, LONG, ___col, d0, LONG, ___row, d1, CONST_STRPTR, ___s, a1, LONG, ___len, d2, LONG, ___fg, d3, LONG, ___bg, d4, LONG, ___attr, d5,\
       , TUI_BASE_NAME)
 
+#define TuiSignal(___t) \
+      LP1(0x9c, ULONG, TuiSignal , struct Tui *, ___t, a0,\
+      , TUI_BASE_NAME)
+
+#define TuiPoll(___t, ___e) \
+      LP2(0xa2, LONG, TuiPoll , struct Tui *, ___t, a0, TuiEv *, ___e, a1,\
+      , TUI_BASE_NAME)
+
+#define TuiKeyWaiting(___t) \
+      LP1(0xa8, LONG, TuiKeyWaiting , struct Tui *, ___t, a0,\
+      , TUI_BASE_NAME)
+
 #endif /* !_INLINE_TUI_H */
