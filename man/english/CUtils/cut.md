@@ -49,6 +49,11 @@ With no file, or `-`, cut reads its input, so it can sit in a pipe.
 10 bad arguments, 20 stopped with Ctrl-C.
 
 ## NOTES
+Quoting: in csh, quote as in bash (`-d' '`, `-d" "`, `"a.*b"`). In the ROM
+Shell and in AmigaDOS scripts a quote counts only at the start of a word,
+and inside quotes `*` is the escape character (`*"`, `*N`): write
+`-d " "` or `"-d "`, and `**` for one `*` (`"a.**b"`).
+
 Only one of **-f**, **-c** and **-b** may be used at a time.
 
 Files may be named with patterns (`#?` or `*`).

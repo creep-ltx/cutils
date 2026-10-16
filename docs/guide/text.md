@@ -17,6 +17,10 @@ file it is plain text.
     grep -l TODO #?.c | xargs sed -i "s/TODO/FIXME/g"
     find Work:Projects -name "#?.c" | xargs wc -l
 
+**Quoting**: in csh, quote as in bash (`cut -d' ' -f1`, `grep "a.*b"`). In the ROM Shell and
+in AmigaDOS scripts a quote counts only at the start of a word, and inside quotes `*` is the
+escape character: write `cut -d " " -f1` and `grep "a.**b"` there.
+
 Text is bytes in Latin-1, the Amiga's own character set: `tr [:upper:] [:lower:]`,
 `grep -i` and `sort -f` know the accented letters too.
 
