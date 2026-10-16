@@ -1,0 +1,34 @@
+==id $Id: tui.sfd 1.0 $
+* tui.library: the toolkit for programs inside the terminal.
+* The order below is the library's jump table: never move a line,
+* only add new ones at the end (and raise the version).
+==base _TuiBase
+==basetype struct Library *
+==libname tui.library
+==bias 30
+==public
+==include <exec/types.h>
+==include <dos/dos.h>
+==include <libraries/tui.h>
+* --- version 1 ---
+LONG TuiPossible(BPTR in) (d1)
+struct Tui * TuiOpen(BPTR in) (d1)
+VOID TuiClose(struct Tui * t) (a0)
+VOID TuiSuspend(struct Tui * t) (a0)
+VOID TuiResume(struct Tui * t) (a0)
+VOID TuiKeyAfter(struct Tui * t, CONST_STRPTR msg) (a0,a1)
+VOID TuiPut(struct Tui * t, LONG col, LONG row, CONST_STRPTR s, LONG len, LONG fg, LONG bg, LONG attr) (a0,d0,d1,a1,d2,d3,d4,d5)
+VOID TuiPutC(struct Tui * t, LONG col, LONG row, ULONG c, LONG fg, LONG bg, LONG attr) (a0,d0,d1,d2,d3,d4,d5)
+VOID TuiFill(struct Tui * t, LONG col, LONG row, LONG w, ULONG c, LONG fg, LONG bg, LONG attr) (a0,d0,d1,d2,d3,d4,d5,d6)
+VOID TuiClear(struct Tui * t) (a0)
+VOID TuiCursor(struct Tui * t, LONG col, LONG row, LONG on) (a0,d0,d1,d2)
+VOID TuiFlush(struct Tui * t) (a0)
+VOID TuiRedraw(struct Tui * t) (a0)
+LONG TuiResized(struct Tui * t) (a0)
+VOID TuiTitle(struct Tui * t, CONST_STRPTR title) (a0,a1)
+LONG TuiWait(struct Tui * t, TuiEv * e, LONG us, ULONG extra, ULONG * got) (a0,a1,d0,d1,a2)
+VOID TuiBeep(struct Tui * t) (a0)
+ULONG TuiBox(struct Tui * t, LONG which) (a0,d0)
+VOID TuiDirty(struct Tui * t, LONG col, LONG row, LONG w, LONG h) (a0,d0,d1,d2,d3)
+VOID TuiRaw(struct Tui * t, LONG col, LONG row, CONST_STRPTR s, LONG n) (a0,d0,d1,a1,d2)
+==end
