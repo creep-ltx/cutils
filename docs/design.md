@@ -27,6 +27,17 @@ note in its design.md or a message, never an edit there. Shared things:
   archive manager. sed, top and wget (2026-10-15) were never tried by hand on the A1200: worth a
   look over Wasabi (wget https needs ~4 MB free fast RAM).
 
+**State 2026-10-16 evening: 46 commands, all installed on the A1200** (C:, pages in
+MAN:english/CUtils; each one beta up today, e.g. tar 0.1b2, ls 0.3b2, man 0.1b5, top 0.1b5, ctop
+0.1b3). TODO.md has no open entries. Done today: every command on a 32 KB stack (tar czf reset the
+machine on 4 KB; man's viewer wrote below its stack), wget's width query (cu_termwidth, shared with
+ls), times in local time (ENV:TZ / Locale; set on the A1200: `CET-1CEST,M3.5.0,M10.5.0/3`), man/top/
+ctop on tui.library's source built in (no LIBS:), README regrouped with docs/guide/ and screenshots
+(tests/shots/, retake when output changes). Notes for a later session: the A1200 gives every process
+128 KB of stack, so stack bugs only show on FS-UAE; never cut test output with `| tail`; two
+run.sh runs at once need different S= letters; whole suite ~30 min on FS-UAE (wget.t and
+wget-https.t need tests/wgettest.sh, the server).
+
 **State 2026-10-15: 45 commands, all installed on the A1200** (C: and HELP:Man/english/CUtils,
 every binary refreshed for the errout() fix); 45 test files green on FS-UAE port 1240 plus
 wget-https.t on the 32 MB one (tests/uae030.sh). Next ideas (the user's list, 2026-10-15): use it a
