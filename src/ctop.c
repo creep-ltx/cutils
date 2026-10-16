@@ -857,6 +857,18 @@ static void drawcpu(int x, int y, int w, int h)
                 rtext(px + pw - 1, ly, pi.throttled & 1 ? "low power!" : "throttled", C_HOT, TA_BOLD);
             ly++;
         }
+        if (ly < end) {
+            int k, st[3] = { 0, 0, 0 };
+            for (k = 0; k < ntasks; k++) st[tasks[k].state]++;
+            p = sstr(b, "Tasks ");
+            p = snum(p, ntasks);
+            p = sstr(p, ", ");
+            p = snum(p, st[0] + st[1]);
+            p = sstr(p, st[0] + st[1] == 1 ? " running" : " running/ready");
+            if ((int)strlen(b) > pw - 2) b[pw - 2] = 0;
+            text(px + 1, ly, b, C_TEXT, 0);
+            ly++;
+        }
         if (ly < end && haspi && pi.model[0]) {
             char m[40];
             const char *s = pi.model;

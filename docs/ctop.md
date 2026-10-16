@@ -16,6 +16,9 @@ Four boxes, as btop, each with a key (1-4) to show or hide it:
 | ⁴proc | every task: CLI, name or command, priority, state, stack and its free part, CPU% with a small graph, TIME+ | cu_tasks + cu_cpu |
 
 The clock sits in the top border, the refresh interval at the right (`- 1000ms +`).
+The box at the right of the cpu box loses its frame below 6 rows. Below 70 columns the mem/net column goes
+(memory then shows as one line in the cpu box). The net box needs 14 rows below the cpu box. Below 40 x 12
+ctop only says the window is too small.
 
 ## How it draws
 
@@ -23,7 +26,8 @@ The clock sits in the top border, the refresh interval at the right (`- 1000ms +
 - Graphs in braille (CTerm draws U+2800-28FF itself in any font), colour by height green-yellow-red. A plain
   console (no UTF-8) gets ASCII graphs (`.:|#`) and `#`/`-` meters.
 - Rounded boxes through tui_box(); titles in the top border, hot letters in red.
-- 80 x 24 is the smallest (a 640 x 256 topaz 8 screen is 80 x 31); bigger screens get wider graphs and more rows.
+- It fits itself to the window: a Shell window on PAL hires (about 76 x 27) shows all four boxes; 40 x 12 is
+  the smallest. The user asked for this (2026-10-16): btop's 80 x 24 minimum shut out a stock Shell window.
 
 ## Keys (all configurable: ENVARC:ctop.keys, written with the built-ins when missing)
 
@@ -31,6 +35,21 @@ Up/Down/PgUp/PgDn/Home/End select, Enter details, k break (Ctrl-C), s choose the
 priority, Left/Right sort column, r reverse, f filter, e every task or only the Shells, c name or command,
 1-4 boxes, + - interval, space pause, h help, q Esc quit. Mouse: click a row, the wheel scrolls.
 
+## Traps met building it
+
+- **A 4 KB stack is not enough** (a CLI started by `Run` has 4 KB): the drawing plus 64-bit sums overflowed it,
+  and the result was a random Line-F crash (#8000000B) seconds later. ctop swaps to a 16 KB stack of its own,
+  as wget does.
+- **qsort and a key pointer into the rows**: a pointer kept in a row points into another row once qsort has
+  moved them, so comparisons changed their minds mid-sort and libnix's quicksort could run off the array.
+  The key is worked out from the row on every comparison.
+- **Inline asm calls to bsdsocket**: a0/a1/d0/d1 are the callee's to change; list them as outputs ("+r"), not
+  plain inputs.
+- **Emu68 is found through devicetree.resource + /emu68** (as Emu68CP and Wasabi do); the old expansion-board
+  check in top never matched on the A1200.
+- FS-UAE's emulated bsdsocket has no byte counters: the net box says so. On the A1200 (lwip-amiga) it works.
+
 ## State
 
-0.1b1 being built 2026-10-16.
+0.1b1, 2026-10-16: tested in FS-UAE 3.1 and 3.2.1 (CTerm on an own 8-bit screen, Shell windows from 48 x 18
+to 78 x 29) and on the A1200 (CTerm full screen RTG and in a Workbench window).

@@ -39,7 +39,8 @@ know, one small pure program each, made for `C:` and for csh pipes.
 | tail | the last lines or bytes; -n -N -n +N -c -f -q -v; big files read from the end | 0.1b1, tested in FS-UAE |
 | tar  | GNU tar: create, list, unpack v7/ustar/GNU/pax archives (squeezed ones found by their first bytes); Amiga protection bits, file notes, soft and hard links kept (pax AMIGA.protect/AMIGA.comment); safe unpacking; -c -x -t -f -v -z -j -J -a -C -k -O -m -T --strip-components --exclude | 0.1b1 (plain archives; squeezing waits for lib/cz.c), tested in FS-UAE and with GNU tar on Linux |
 | tee  | the input to the output and to files; -a | 0.1b1, tested in FS-UAE |
-| top  | the classic top in the terminal: tasks by CPU% and TIME+, exact (exec's task-switch hooks, not sampled), memory, uptime; keys to sort, filter, break a task; -b -d -n | 0.1b2, tested in FS-UAE 3.1 + 3.2.1 and on the A1200 |
+| top  | the classic top in the terminal: tasks by CPU% and TIME+, exact (exec's task-switch hooks, not sampled), memory, uptime; keys to sort, filter, break a task; -b -d -n | 0.1b3, tested in FS-UAE 3.1 + 3.2.1 and on the A1200 |
+| ctop | btop for the Amiga: cpu, memory, disks, network and every task in boxes with braille graphs and 256 colours (CTerm) or ASCII (any console); exact CPU%, Emu68 MIPS, the Pi's temperature; fits windows from 40x12; every key in ENVARC:ctop.keys; -d | 0.1b1, tested in FS-UAE 3.1 + 3.2.1 and on the A1200 |
 | touch | date a file now (or -d / -r), make it when missing; -c -d -r | 0.1b2, tested in FS-UAE |
 | tr   | characters changed, deleted, squeezed: ranges, classes, \\NNN, [c*N]; -c -d -s; Latin-1 case | 0.1b1, tested in FS-UAE |
 | uniq | runs of equal lines once; -c -d -u -i -f -s -w, IN and OUT files | 0.1b1, tested in FS-UAE |
